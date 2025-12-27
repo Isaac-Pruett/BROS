@@ -1,0 +1,11 @@
+[package]
+name = "rust_sub"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+zenoh = "1.7.1"
+
+[[bin]]
+name = "rust-zenoh-app"   # ← make this explicit!
+path = "src/main.rs"
