@@ -1,4 +1,5 @@
 {
+  # This is a slightly modified uv2nix template flake
   description = "hello world application using uv2nix";
 
   inputs = {
@@ -33,6 +34,9 @@
     }:
     let
       inherit (nixpkgs) lib;
+
+      name = "hello-world";
+
       forAllSystems = lib.genAttrs lib.systems.flakeExposed;
 
       workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = ./.; };
@@ -69,7 +73,7 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           pythonSet = pythonSets.${system}.overrideScope editableOverlay;
-          virtualenv = pythonSet.mkVirtualEnv "hello-world-dev-env" workspace.deps.all;
+          virtualenv = pythonSet.mkVirtualEnv "${name}-dev-env" workspace.deps.all;
         in
         {
           default = pkgs.mkShell {
@@ -91,7 +95,7 @@
       );
 
       packages = forAllSystems (system: {
-        default = pythonSets.${system}.mkVirtualEnv "hello-world-env" workspace.deps.default;
+        default = pythonSets.${system}.mkVirtualEnv "${name}-env" workspace.deps.default;
       });
     };
 }

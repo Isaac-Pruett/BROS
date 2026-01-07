@@ -10,7 +10,7 @@
   outputs = { self, nixpkgs, utils, naersk }:
     utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};  # ← prefer legacyPackages over import
+        pkgs = nixpkgs.legacyPackages.${system};
         naersk-lib = pkgs.callPackage naersk { };
       in
       {

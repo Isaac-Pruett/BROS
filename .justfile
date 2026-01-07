@@ -1,6 +1,7 @@
 alias r := run
 alias b := build
 alias c := clean
+alias d := develop
 
 # default target, lists all targets available
 list:
@@ -23,3 +24,6 @@ new-rust NAME:
 
 new-py NAME:
     @mkdir ${{ NAME }}
+
+develop:
+    @nix develop

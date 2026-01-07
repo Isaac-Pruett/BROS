@@ -49,6 +49,7 @@
       devShells.default = pkgs.mkShell {
         packages = [
           # pkgs.zenoh
+          self.packages.${system}.default
           self.packages.${system}.rustApp
           self.packages.${system}.pythonApp
 

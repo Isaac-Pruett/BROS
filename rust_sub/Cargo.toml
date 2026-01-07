@@ -7,6 +7,9 @@ edition = "2024"
 tokio = "1.49.0"
 zenoh = "1.7.1"
 
+
+# this defines the binaries to build in the nix build schema
+# the name of this package is the name of the binary that will be built.
 [[bin]]
-name = "rust-zenoh-app"   # ← make this explicit!
+name = "rust-zenoh-app"
 path = "src/main.rs"

@@ -3,7 +3,7 @@ from time import sleep
 import zenoh
 
 
-def hello():
+def main():
     with zenoh.open(zenoh.Config()) as session:
         pub = session.declare_publisher("python/helloworld")
         sub = session.declare_subscriber("rust/helloworld", listen)
@@ -22,9 +22,10 @@ def hello():
         session.close()
 
 
+# a callback to run by the subscriber
 def listen(sample: zenoh.Sample):
     print("Python ← Received:", sample.payload.to_string())
 
 
 if __name__ == "__main__":
-    hello()
+    main()
