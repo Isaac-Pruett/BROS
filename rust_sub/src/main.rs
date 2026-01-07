@@ -1,35 +1,29 @@
-use std::{thread::sleep, time::Duration};
-
+use std::time::Duration;
 use zenoh;
 
 #[tokio::main]
-async fn main() {
-    let config = zenoh::Config::default();
+async fn main() -> zenoh::Result<()> {
+    let session = zenoh::open(zenoh::Config::default()).await?;
+    let publisher = session.declare_publisher("rust/helloworld").await?;
+    let subscriber = session.declare_subscriber("python/helloworld").await?;
 
-    let session = zenoh::open(config).await.unwrap();
+    // Wait for subscribers to be ready
+    tokio::time::sleep(Duration::from_millis(500)).await;
 
-    let publ = session.declare_publisher("rust/helloworld").await.unwrap();
+    // Now publish
+    publisher.put("Hello, from Rust!").await?;
+    println!("Rust → Published");
 
-    let subs = session
-        .declare_subscriber("python/helloworld")
-        .await
-        .unwrap();
+    println!("Rust → Waiting for Python message...");
+    match tokio::time::timeout(Duration::from_secs(8), subscriber.recv_async()).await {
+        Ok(Ok(sample)) => {
+            let msg = sample.payload().try_to_string().unwrap_or_default();
+            println!("Rust ← Received: {msg:?}");
+        }
+        Ok(Err(e)) => println!("Rust ← Error receiving: {e}"),
+        Err(_) => println!("Rust ← Timeout waiting for Python"),
+    }
 
-    publ.put("Hello, from Rust!").await.unwrap();
-
-    println!("Rust put the data");
-    tokio::time::sleep(Duration::from_millis(3000)).await;
-
-    let data = subs.recv().unwrap();
-
-    println!("Rust recienved a message");
-
-    // dbg!(&data);
-
-    let msg = data.payload().try_to_string().expect("msg is invalid");
-
-    println!("{:?}", msg);
-
-    sleep(Duration::from_millis(1500));
-    println!("Hello, world!");
+    println!("Rust done!");
+    Ok(())
 }

@@ -3,26 +3,27 @@ from time import sleep
 import zenoh
 
 
-def hello() -> None:
-    # print("INIT")
+def main():
     with zenoh.open(zenoh.Config()) as session:
-        # print("python opened the zenoh session")
-        publ = session.declare_publisher("python/helloworld")
+        pub = session.declare_publisher("python/helloworld")
+        sub = session.declare_subscriber("rust/helloworld")
 
-        subs = session.declare_subscriber("rust/helloworld")
+        # Wait for subscribers to be ready
+        sleep(0.5)
 
-        publ.put("Hello, from Python!")
-        print("python put the msg")
-        sleep(3)
+        # Now publish
+        pub.put("Hello, from Python!")
+        print("Python → Published")
 
-        packet = subs.recv()
-        print("python recienved a massage")
-        # print(packet)
+        print("Python → Waiting for Rust message...")
+        try:
+            sample = sub.recv()
+            print("Python ← Received:", sample.payload.to_string())
+        except TimeoutError:
+            print("Python ← Timeout waiting for Rust")
 
-        payload = packet.payload
+        print("Python done!")
 
-        print(payload.to_string())
 
-    print("Hello from hello-world!")
-    sleep(4)
-    print("haha, did async work?")
+if __name__ == "__main__":
+    main()
