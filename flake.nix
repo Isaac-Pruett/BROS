@@ -39,7 +39,7 @@
             export ZENOH_CONFIG=${sharedConfig}
             echo "Launching with shared config: $ZENOH_CONFIG"
             hello &
-            rust-zenoh-app &  # Adjust bin name if needed
+            rust-zenoh-app &
 
             wait  # Or use trap for signals/cleanup
           '';
@@ -52,6 +52,7 @@
           self.packages.${system}.default
           self.packages.${system}.rustApp
           self.packages.${system}.pythonApp
+          pkgs.just
 
         ];
         shellHook = ''
