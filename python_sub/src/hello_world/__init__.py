@@ -3,10 +3,10 @@ from time import sleep
 import zenoh
 
 
-def main():
+def hello():
     with zenoh.open(zenoh.Config()) as session:
         pub = session.declare_publisher("python/helloworld")
-        sub = session.declare_subscriber("rust/helloworld")
+        sub = session.declare_subscriber("rust/helloworld", listen)
 
         # Wait for subscribers to be ready
         sleep(0.5)
@@ -16,14 +16,15 @@ def main():
         print("Python → Published")
 
         print("Python → Waiting for Rust message...")
-        try:
-            sample = sub.recv()
-            print("Python ← Received:", sample.payload.to_string())
-        except TimeoutError:
-            print("Python ← Timeout waiting for Rust")
+        sleep(2)
 
         print("Python done!")
+        session.close()
+
+
+def listen(sample: zenoh.Sample):
+    print("Python ← Received:", sample.payload.to_string())
 
 
 if __name__ == "__main__":
-    main()
+    hello()

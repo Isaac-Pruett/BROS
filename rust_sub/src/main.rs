@@ -25,5 +25,6 @@ async fn main() -> zenoh::Result<()> {
     }
 
     println!("Rust done!");
+    session.close().await?;
     Ok(())
 }
