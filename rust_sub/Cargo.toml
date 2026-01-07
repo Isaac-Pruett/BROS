@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tokio = "1.49.0"
 zenoh = "1.7.1"
 
 [[bin]]
