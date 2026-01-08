@@ -8,7 +8,7 @@ async fn main() -> zenoh::Result<()> {
     let subscriber = session.declare_subscriber("python/helloworld").await?;
 
     // Wait for subscribers to be ready
-    tokio::time::sleep(Duration::from_millis(500)).await;
+    tokio::time::sleep(Duration::from_millis(2500)).await;
 
     // Now publish
     publisher.put("Hello, from Rust!").await?;

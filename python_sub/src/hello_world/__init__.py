@@ -9,7 +9,7 @@ def main():
         sub = session.declare_subscriber("rust/helloworld", listen)
 
         # Wait for subscribers to be ready
-        sleep(1.5)
+        sleep(2.5)
 
         # Now publish
         pub.put("Hello, from Python!")
