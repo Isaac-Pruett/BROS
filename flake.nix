@@ -7,9 +7,12 @@
     rust-sub.url = "./rust_sub";
     python-sub.url = "./python_sub";
 
+
+
+
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-sub, python-sub}:
+  outputs = { self, nixpkgs, flake-utils, rust-sub, python-sub }:
     flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
 
@@ -27,8 +30,9 @@
         rustApp = rust-sub.packages.${system}.default;
         pythonApp = python-sub.packages.${system}.default;
 
+        default = self.packages.${system}.demo;
         # Launcher: Spins up all with shared config
-        default = pkgs.writeShellApplication {
+        demo = pkgs.writeShellApplication {
           name = "launch-zenoh-apps";
           runtimeInputs = [
             self.packages.${system}.rustApp
@@ -57,6 +61,7 @@
         ];
         shellHook = ''
           export ZENOH_CONFIG=${sharedConfig}
+          export j="just"
           echo "Master dev shell ready. Run 'launch-zenoh-apps' to start all."
         '';
       };

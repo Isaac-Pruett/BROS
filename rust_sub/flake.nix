@@ -20,7 +20,7 @@
           pname = "rust-zenoh-app";
           # Optional: customize if needed
           # doCheck = true;
-          release = false;  # already default in naersk
+          # release = false;  # already default in naersk
         };
 
         # Modern way: devShells.default
