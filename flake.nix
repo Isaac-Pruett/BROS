@@ -20,10 +20,15 @@
       sharedConfig = pkgs.writeText "zenoh-config.json" ''
         {
           "mode": "peer",
-          "connect": { "endpoints": ["tcp/127.0.0.1:7447"] },
-          "listen": { "endpoints": ["tcp/0.0.0.0:7447"] }
+          "listen": { "endpoints": ["tcp/127.0.0.1:0"] },
+          "scouting": {
+            "multicast": {
+              "enabled": true
+            }
+          }
         }
       '';
+
     in {
       # Expose subproject packages for composition
       packages = {
@@ -42,10 +47,16 @@
           text = ''
             export ZENOH_CONFIG=${sharedConfig}
             echo "Launching with shared config: $ZENOH_CONFIG"
-            hello &
-            rust-zenoh-app &
 
-            wait  # Or use trap for signals/cleanup
+            hello &
+            PYTHON_PID=$!
+            rust-zenoh-app &
+            RUST_PID=$!
+
+            # trap 'kill $PYTHON_PID $RUST_PID 2>/dev/null' EXIT
+
+            wait $PYTHON_PID $RUST_PID
+            # wait  # Or use trap for signals/cleanup
           '';
         };
       };

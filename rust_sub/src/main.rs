@@ -3,12 +3,13 @@ use zenoh;
 
 #[tokio::main]
 async fn main() -> zenoh::Result<()> {
-    let session = zenoh::open(zenoh::Config::default()).await?;
+    let session =
+        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).await?;
     let publisher = session.declare_publisher("rust/helloworld").await?;
     let subscriber = session.declare_subscriber("python/helloworld").await?;
 
     // Wait for subscribers to be ready
-    tokio::time::sleep(Duration::from_millis(2500)).await;
+    tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Now publish
     publisher.put("Hello, from Rust!").await?;
