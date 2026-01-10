@@ -13,7 +13,6 @@ def main():
         pub = session.declare_publisher("python/helloworld")
         sub = session.declare_subscriber("rust/helloworld", listen)
 
-
         # Wait for subscribers to be ready
         sleep(0.5)
 

@@ -13,62 +13,47 @@ from pathlib import Path
 from typing import Literal
 
 RUST_MAIN_TEMPLATE = """use std::time::Duration;
-use zenoh::prelude::*;
+use zenoh;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {{
-    // Initialize Zenoh session
-    let config = zenoh::Config::default();
-    let session = zenoh::open(config).await?;
+async fn main() -> zenoh::Result<()> {
+    let session =
+        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).await?;
+    let publisher = session.declare_publisher("rust/helloworld").await?;
+    let subscriber = session.declare_subscriber("python/helloworld").await?;
 
-    println!("[{node_name}] Session opened");
-
-    // Declare publisher
-    let key_pub = "rust/{node_name}/data";
-    let publisher = session.declare_publisher(key_pub).await?;
-    println!("[{node_name}] Publisher declared on '{{}}'", key_pub);
-
-    // Declare subscriber
-    let key_sub = "python/helloworld";
-    let subscriber = session.declare_subscriber(key_sub).await?;
-    println!("[{node_name}] Subscriber declared on '{{}}'", key_sub);
-
-    // Wait for discovery
+    // Wait for subscribers to be ready
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    // Publish message
-    let message = format!("Hello from {{}}!", "{node_name}");
-    publisher.put(&message).await?;
-    println!("[{node_name}] → Published: '{{}}'", message);
+    // Now publish
+    publisher.put("Hello, from Rust!").await?;
+    println!("Rust → Published");
 
-    // Wait for incoming messages
-    println!("[{node_name}] ← Waiting for messages...");
-    match tokio::time::timeout(Duration::from_secs(10), subscriber.recv_async()).await {{
-        Ok(Ok(sample)) => {{
-            let msg = sample
-                .payload()
-                .try_to_string()
-                .unwrap_or_default();
-            println!("[{node_name}] ← Received: '{{}}'", msg);
-        }}
-        Ok(Err(e)) => eprintln!("[{node_name}] ✗ Error receiving: {{}}", e),
-        Err(_) => println!("[{node_name}] ⏱ Timeout waiting for messages"),
-    }}
+    println!("Rust → Waiting for Python message...");
+    match tokio::time::timeout(Duration::from_secs(8), subscriber.recv_async()).await {
+        Ok(Ok(sample)) => {
+            let msg = sample.payload().try_to_string().unwrap_or_default();
+            println!("Rust ← Received: {msg:?}");
+        }
+        Ok(Err(e)) => println!("Rust ← Error receiving: {e}"),
+        Err(_) => println!("Rust ← Timeout waiting for Python"),
+    }
 
-    println!("[{node_name}] Done!");
+    println!("Rust done!");
     session.close().await?;
     Ok(())
-}}
+}
+
 """
 
 CARGO_TOML_TEMPLATE = """[package]
 name = "{node_name}"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 tokio = {{ version = "1", features = ["full"] }}
-zenoh = "1.0.0"
+zenoh = "1.0"
 
 [[bin]]
 name = "{node_name}"
@@ -77,165 +62,185 @@ path = "src/main.rs"
 
 RUST_FLAKE_TEMPLATE = """{{
   description = "{node_name} — Rust Zenoh Node";
-
   inputs = {{
-    naersk.url = "github:nix-community/naersk";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    naersk.url = "github:nix-community/naersk/master";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    utils.url = "github:numtide/flake-utils";
   }};
-
-  outputs = {{ self, nixpkgs, flake-utils, naersk }}:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs = {{ self, nixpkgs, utils, naersk }}:
+    utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${{system}};
-        naersk-lib = pkgs.callPackage naersk {{}};
+        naersk-lib = pkgs.callPackage naersk {{ }};
       in
       {{
         packages.default = naersk-lib.buildPackage {{
           src = ./.;
           pname = "{node_name}";
-
-          # Optional: add system dependencies
-          buildInputs = with pkgs; [
-            # Add any required system libraries here
-          ];
+          # Optional: customize if needed
+          # doCheck = true;
+          # release = false;  # already default in naersk
         }};
-
         devShells.default = pkgs.mkShell {{
           buildInputs = with pkgs; [
             cargo
             rustc
             rustfmt
-            clippy
-            rust-analyzer
-            cargo-watch
+            pre-commit
+            rustPackages.clippy
           ];
-
           RUST_SRC_PATH = pkgs.rustPlatform.rustLibSrc;
-
-          shellHook = ''
-            echo "🦀 Rust development environment for {node_name}"
-            echo "Run 'cargo build' to build the project"
-          '';
         }};
-
-        apps.default = {{
-          type = "app";
-          program = "${{self.packages.${{system}}.default}}/bin/{node_name}";
+        apps.default = utils.lib.mkApp {{
+          drv = self.packages.${{system}}.default;
         }};
       }}
     );
 }}
 """
 
-PYTHON_MAIN_TEMPLATE = """#!/usr/bin/env python3
+
+PYTHON_PYROJ_TEMPLATE = """[project]
+name = "{node_name}"
+version = "0.1.0"
+description = "{node_name} - Python Zenoh Node"
+requires-python = ">=3.12"
+dependencies = [
+ "eclipse-zenoh>=1.7.1",
+]
+
+# this defines the entrypoint of the python program.
+# we look in the package hello_world and find the function main (inside __init__.py)
+# the function must be visible (i.e. imported or defined) in __init__.py
+[project.scripts]
+{node_name} = "{node_name}:main"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
+"""
+
+PYTHON_MAIN_TEMPLATE = """
 \"\"\"
 {node_name} - Python Zenoh Node
 \"\"\"
-import time
+from time import sleep
+
 import zenoh
 
+
+# a callback to run by the subscriber
+def listen(sample: zenoh.Sample):
+    print("Python ← Received:", sample.payload.to_string())
+
+
 def main():
-    # Initialize Zenoh session
-    config = zenoh.Config()
-    session = zenoh.open(config)
-    print(f"[{node_name}] Session opened")
+    with zenoh.open(zenoh.Config().from_env()) as session:
+        pub = session.declare_publisher("python/helloworld")
+        sub = session.declare_subscriber("rust/helloworld", listen)
 
-    # Declare publisher
-    key_pub = "python/{node_name}/data"
-    pub = session.declare_publisher(key_pub)
-    print(f"[{node_name}] Publisher declared on '{{key_pub}}'")
+        # Wait for subscribers to be ready
+        sleep(0.5)
 
-    # Declare subscriber
-    key_sub = "rust/helloworld"
+        # Now publish
+        pub.put("Hello, from Python!")
+        print("Python → Published")
 
-    def listener(sample):
-        payload = sample.payload.to_string()
-        print(f"[{node_name}] ← Received: '{{payload}}'")
+        print("Python → Waiting for Rust message...")
 
-    sub = session.declare_subscriber(key_sub, listener)
-    print(f"[{node_name}] Subscriber declared on '{{key_sub}}'")
+        print("Python done!")
+        session.close()
 
-    # Wait for discovery
-    time.sleep(0.5)
-
-    # Publish message
-    message = f"Hello from {node_name}!"
-    pub.put(message)
-    print(f"[{node_name}] → Published: '{{message}}'")
-
-    # Keep running to receive messages
-    print(f"[{node_name}] ← Waiting for messages...")
-    try:
-        time.sleep(10)
-    except KeyboardInterrupt:
-        pass
-
-    print(f"[{node_name}] Done!")
-    session.close()
 
 if __name__ == "__main__":
     main()
+
 """
 
 PYTHON_FLAKE_TEMPLATE = """{{
   description = "{node_name} — Python Zenoh Node";
-
   inputs = {{
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    pyproject-nix = {{
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    }};
+    uv2nix = {{
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    }};
+    pyproject-build-systems = {{
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    }};
   }};
-
-  outputs = {{ self, nixpkgs, flake-utils }}:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${{system}};
-
-        pythonEnv = pkgs.python3.withPackages (ps: [
-          ps.eclipse-zenoh
-        ]);
-
-      in
-      {{
-        packages.default = pkgs.stdenv.mkDerivation {{
-          pname = "{node_name}";
-          version = "0.1.0";
-          src = ./.;
-
-          buildInputs = [ pythonEnv ];
-
-          installPhase = ''
-            mkdir -p $out/bin
-            cp src/main.py $out/bin/{node_name}
-            chmod +x $out/bin/{node_name}
-
-            # Wrap with Python environment
-            wrapProgram $out/bin/{node_name} \\
-              --prefix PATH : ${{pythonEnv}}/bin
-          '';
-
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-        }};
-
-        devShells.default = pkgs.mkShell {{
-          buildInputs = [
-            pythonEnv
-            pkgs.python3Packages.ipython
-            pkgs.ruff
-          ];
-
-          shellHook = ''
-            echo "🐍 Python development environment for {node_name}"
-            echo "Run 'python src/main.py' to start the node"
-          '';
-        }};
-
-        apps.default = {{
-          type = "app";
-          program = "${{self.packages.${{system}}.default}}/bin/{node_name}";
-        }};
-      }}
-    );
+  outputs = {{
+    nixpkgs,
+    pyproject-nix,
+    uv2nix,
+    pyproject-build-systems,
+    ...
+  }}:
+    let
+      inherit (nixpkgs) lib;
+      forAllSystems = lib.genAttrs lib.systems.flakeExposed;
+      workspace = uv2nix.lib.workspace.loadWorkspace {{ workspaceRoot = ./.; }};
+      overlay = workspace.mkPyprojectOverlay {{
+        sourcePreference = "wheel";
+      }};
+      editableOverlay = workspace.mkEditablePyprojectOverlay {{
+        root = "$REPO_ROOT";
+      }};
+      pythonSets = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${{system}};
+          python = pkgs.python3;
+        in
+        (pkgs.callPackage pyproject-nix.build.packages {{
+          inherit python;
+        }}).overrideScope
+          (
+            lib.composeManyExtensions [
+              pyproject-build-systems.overlays.wheel
+              overlay
+            ]
+          )
+      );
+    in
+    {{
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${{system}};
+          pythonSet = pythonSets.${{system}}.overrideScope editableOverlay;
+          virtualenv = pythonSet.mkVirtualEnv "{node_name}-dev-env" workspace.deps.all;
+        in
+        {{
+          default = pkgs.mkShell {{
+            packages = [
+              virtualenv
+              pkgs.uv
+            ];
+            env = {{
+              UV_NO_SYNC = "1";
+              UV_PYTHON = pythonSet.python.interpreter;
+              UV_PYTHON_DOWNLOADS = "never";
+            }};
+            shellHook = ''
+              unset PYTHONPATH
+              export REPO_ROOT=$(git rev-parse --show-toplevel)
+            '';
+          }};
+        }}
+      );
+      packages = forAllSystems (system: {{
+        default = pythonSets.${{system}}.mkVirtualEnv "{node_name}-env" workspace.deps.default;
+      }});
+    }};
 }}
 """
 
@@ -475,10 +480,10 @@ def create_rust_node(node_name: str):
 
     print(f"✓ Created Rust node: {node_dir}/")
 
-    # Update master flake
-    if add_node_to_master_flake(node_name, "rust"):
-        print(f"✓ Node integrated into monorepo")
-        print(f"\n💡 Run 'nix flake lock' to update lockfile")
+    # # Update master flake
+    # if add_node_to_master_flake(node_name, "rust"):
+    #     print(f"✓ Node integrated into monorepo")
+    #     print(f"\n💡 Run 'nix flake lock' to update lockfile")
 
     print(f"\n📦 Next steps:")
     print(f"  cd {node_dir}")
@@ -499,8 +504,11 @@ def create_python_node(node_name: str):
     src_dir = node_dir / "src"
     src_dir.mkdir()
 
+    pkg_dir = src_dir / node_name
+    pkg_dir.mkdir()
+
     # Write files
-    main_file = src_dir / "__init__.py"
+    main_file = pkg_dir / "__init__.py"
     main_file.write_text(PYTHON_MAIN_TEMPLATE.format(node_name=node_name))
     main_file.chmod(0o755)
 
@@ -510,21 +518,26 @@ def create_python_node(node_name: str):
     (node_dir / ".gitignore").write_text(GITIGNORE_TEMPLATE)
     (node_dir / "README.md").write_text(
         README_TEMPLATE.format(
-            node_name=node_name, node_type="Python", run_command=f"python src/main.py"
+            node_name=node_name, node_type="Python", run_command=f"uv run main"
         )
+    )
+
+    (node_dir / "pyproject.toml").write_text(
+        PYTHON_PYROJ_TEMPLATE.format(node_name=node_name)
     )
 
     print(f"✓ Created Python node: {node_dir}/")
 
-    # Update master flake
-    if add_node_to_master_flake(node_name, "python"):
-        print(f"✓ Node integrated into monorepo")
-        # print(f"\n💡 Run 'nix flake lock' to update lockfile")
+    # # Update master flake
+    # if add_node_to_master_flake(node_name, "python"):
+    #     print(f"✓ Node integrated into monorepo")
+    #     # print(f"\n💡 Run 'nix flake lock' to update lockfile")
 
     print(f"\n📦 Next steps:")
     print(f"  cd {node_dir}")
-    print(f"  nix develop              # Enter dev shell")
-    print(f"  python src/main.py       # Run the node")
+    print(f"  nix develop       # Enter dev shell")
+    print(f"  uv sync           # install the .venv")
+    print(f"  uv run main       # Run the node")
 
 
 def main():

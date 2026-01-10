@@ -1,0 +1,18 @@
+[project]
+name = "mynode"
+version = "0.1.0"
+description = "mynode - Python Zenoh Node"
+requires-python = ">=3.12"
+dependencies = [
+ "eclipse-zenoh>=1.7.1",
+]
+
+# this defines the entrypoint of the python program.
+# we look in the package hello_world and find the function main (inside __init__.py)
+# the function must be visible (i.e. imported or defined) in __init__.py
+[project.scripts]
+mynode = "mynode:main"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"

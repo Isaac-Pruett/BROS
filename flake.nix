@@ -6,18 +6,16 @@
     flake-utils.url = "github:numtide/flake-utils";
     rust-sub.url = "./rust_sub";
     python-sub.url = "./python_sub";
-
-
-
+    mynode.url = "./mynode";
 
   };
 
-  outputs = { self, nixpkgs, flake-utils, rust-sub, python-sub }:
+  outputs = { self, nixpkgs, flake-utils, ...} @ inputs:
     flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
+      syspkgs = nixpkgs.legacyPackages.${system};
 
       # Generate shared Zenoh config (customize as needed; could derive from template)
-      sharedConfig = pkgs.writeText "zenoh-config.json" ''
+      sharedConfig = syspkgs.writeText "zenoh-config.json" ''
         {
           "mode": "peer",
           "listen": { "endpoints": ["tcp/127.0.0.1:0"] },
@@ -32,13 +30,14 @@
     in {
       # Expose subproject packages for composition
       packages = {
-        rustApp = rust-sub.packages.${system}.default;
-        pythonApp = python-sub.packages.${system}.default;
+        rustApp = inputs.rust-sub.packages.${system}.default;
+        pythonApp = inputs.python-sub.packages.${system}.default;
+        myNodeApp = inputs.mynode.packages.${system}.default;
 
         default = self.packages.${system}.demo;
         # Launcher: Spins up all with shared config
-        demo = pkgs.writeShellApplication {
-          name = "launch-zenoh-apps";
+        demo = syspkgs.writeShellApplication {
+          name = "demo-ping-pong-zenoh";
           runtimeInputs = [
             self.packages.${system}.rustApp
             self.packages.${system}.pythonApp
@@ -61,19 +60,25 @@
         };
       };
 
-      devShells.default = pkgs.mkShell {
+      devShells.default = syspkgs.mkShell {
         packages = [
           # pkgs.zenoh
           self.packages.${system}.default
           self.packages.${system}.rustApp
           self.packages.${system}.pythonApp
-          pkgs.just
+          syspkgs.just
+
+          self.packages.${system}.myNodeApp
+
 
         ];
+
+        env.ZENOH_CONFIG = sharedConfig;
+
         shellHook = ''
-          export ZENOH_CONFIG=${sharedConfig}
-          export j="just"
-          echo "Master dev shell ready. Run 'launch-zenoh-apps' to start all."
+          # export ZENOH_CONFIG=${sharedConfig}
+          alias j="just"
+          echo "Master dev shell ready. Run 'demo-ping-pong-zenoh' to start demo."
         '';
       };
     });
