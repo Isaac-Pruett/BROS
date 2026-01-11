@@ -173,15 +173,15 @@
     "pyproject-build-systems_2": {
       "inputs": {
         "nixpkgs": [
-          "simplenode",
+          "simpledemo",
           "nixpkgs"
         ],
         "pyproject-nix": [
-          "simplenode",
+          "simpledemo",
           "pyproject-nix"
         ],
         "uv2nix": [
-          "simplenode",
+          "simpledemo",
           "uv2nix"
         ]
       },
@@ -223,7 +223,7 @@
     "pyproject-nix_2": {
       "inputs": {
         "nixpkgs": [
-          "simplenode",
+          "simpledemo",
           "nixpkgs"
         ]
       },
@@ -264,7 +264,7 @@
         "nixpkgs": "nixpkgs",
         "python-demo-sub": "python-demo-sub",
         "rust-demo-sub": "rust-demo-sub",
-        "simplenode": "simplenode"
+        "simpledemo": "simpledemo"
       }
     },
     "rust-analyzer-src": {
@@ -300,7 +300,7 @@
       },
       "parent": []
     },
-    "simplenode": {
+    "simpledemo": {
       "inputs": {
         "nixpkgs": "nixpkgs_5",
         "pyproject-build-systems": "pyproject-build-systems_2",
@@ -308,11 +308,11 @@
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "path": "./simplenode",
+        "path": "./simpledemo",
         "type": "path"
       },
       "original": {
-        "path": "./simplenode",
+        "path": "./simpledemo",
         "type": "path"
       },
       "parent": []
@@ -393,11 +393,11 @@
     "uv2nix_2": {
       "inputs": {
         "nixpkgs": [
-          "simplenode",
+          "simpledemo",
           "nixpkgs"
         ],
         "pyproject-nix": [
-          "simplenode",
+          "simpledemo",
           "pyproject-nix"
         ]
       },
