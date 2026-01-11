@@ -4,8 +4,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    rust-sub.url = "./rust_sub";
-    python-sub.url = "./python_sub";
+    rust-demo-sub.url = "./rust_sub";
+    python-demo-sub.url = "./python_sub";
     mynode.url = "./mynode";
 
   };
@@ -30,32 +30,37 @@
     in {
       # Expose subproject packages for composition
       packages = {
-        rustApp = inputs.rust-sub.packages.${system}.default;
-        pythonApp = inputs.python-sub.packages.${system}.default;
-        myNodeApp = inputs.mynode.packages.${system}.default;
+        rust_demo = inputs.rust-demo-sub.packages.${system}.default;
+        python_demo = inputs.python-demo-sub.packages.${system}.default;
+
+        my_node = inputs.mynode.packages.${system}.default;
 
         default = self.packages.${system}.demo;
+
+
         # Launcher: Spins up all with shared config
         demo = syspkgs.writeShellApplication {
           name = "demo-ping-pong-zenoh";
           runtimeInputs = [
-            self.packages.${system}.rustApp
-            self.packages.${system}.pythonApp
+            self.packages.${system}.rust_demo
+            self.packages.${system}.python_demo
 
           ];
           text = ''
-            export ZENOH_CONFIG=${sharedConfig}
-            echo "Launching with shared config: $ZENOH_CONFIG"
+              export ZENOH_CONFIG=${sharedConfig}
+              echo "Launching with shared config: $ZENOH_CONFIG"
 
-            hello &
-            PYTHON_PID=$!
-            rust-zenoh-app &
-            RUST_PID=$!
+              # Start processes in background
+              hello &
+              PYTHON_PID=$!
+              rust-zenoh-app &
+              RUST_PID=$!
 
-            # trap 'kill $PYTHON_PID $RUST_PID 2>/dev/null' EXIT
+              # Trap EXIT and SIGINT (Ctrl+C)
+              trap 'kill $PYTHON_PID $RUST_PID 2>/dev/null' EXIT SIGINT
 
-            wait $PYTHON_PID $RUST_PID
-            # wait  # Or use trap for signals/cleanup
+              # Wait for both processes
+              wait $PYTHON_PID $RUST_PID
           '';
         };
       };
@@ -63,12 +68,12 @@
       devShells.default = syspkgs.mkShell {
         packages = [
           # pkgs.zenoh
-          self.packages.${system}.default
-          self.packages.${system}.rustApp
-          self.packages.${system}.pythonApp
+          self.packages.${system}.demo
+          self.packages.${system}.rust_demo
+          self.packages.${system}.python_demo
           syspkgs.just
 
-          self.packages.${system}.myNodeApp
+          self.packages.${system}.my_node
 
 
         ];
