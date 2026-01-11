@@ -3,7 +3,7 @@
 In Development.
 
 BROS is a framework for developing programs and processes that talk to each other using [Zenoh](https://zenoh.io), and have an automated build/launch process by using nix flakes. It enables the user to use modern package managers ([cargo](https://doc.rust-lang.org/cargo/), [uv](https://docs.astral.sh/uv/)) with Zenoh's extremely fast Inter-Process-Communication. Developed initialally as a personal project with intent to use on PolyUAS autonomous drones.
-
+---
 ## To use: 
 
 Ensure that you have [Nix](https://nixos.org/download/) with [flake](https://nixos.wiki/wiki/Flakes) support installed on your machine.
@@ -17,7 +17,7 @@ nix develop
 ```sh
 simpledemo
 ```
-
+---
 
 
 ### Running the Zenoh demo:
