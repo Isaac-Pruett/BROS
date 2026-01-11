@@ -2,7 +2,7 @@
 ---
 In Development.
 
-BROS is a framework for developing programs and processes that talk to each other using [Zenoh](https://zenoh.io), and have an automated build/launch process by using [Nix](https://nixos.org) flakes. It enables the user to use modern package managers ([cargo](https://doc.rust-lang.org/cargo/), [uv](https://docs.astral.sh/uv/)) with Zenoh's extremely fast Inter-Process-Communication. Developed initialally as a personal project with intent to use on PolyUAS autonomous drones.
+BROS is a framework for developing programs and processes that talk to each other using [Zenoh](https://zenoh.io), and have an automated build/launch process by using [Nix](https://nixos.org) flakes. It enables the user to use modern package managers ([cargo](https://doc.rust-lang.org/cargo/), [uv](https://docs.astral.sh/uv/)) with Zenoh's extremely fast Inter-Process-Communication. Developed initialally as a personal project with intent to use on robots and PolyUAS autonomous drones.
 
 
 
