@@ -6,7 +6,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     rust-demo-sub.url = "./rust_sub";
     python-demo-sub.url = "./python_sub";
-    simplenode.url = "./simplenode";
+    simpledemo.url = "./simpledemo";
 
   };
 
@@ -33,7 +33,7 @@
         rust_demo = inputs.rust-demo-sub.packages.${system}.default;
         python_demo = inputs.python-demo-sub.packages.${system}.default;
 
-        my_node = inputs.simplenode.packages.${system}.default;
+        my_node = inputs.simpledemo.packages.${system}.default;
 
         default = self.packages.${system}.demo;
 
