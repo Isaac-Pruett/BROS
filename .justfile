@@ -29,6 +29,13 @@ nuke: clean
 new NAME BUILD:
     @ ./.build_utils/new_node.py {{ NAME }} {{ BUILD }}
     @nix flake lock
+    @cd {{ NAME }} && \
+    if [ "{{ BUILD }}" = "rust" ]; then \
+        cargo check; \
+    elif [ "{{ BUILD }}" = "python" ]; then \
+        uv sync; \
+    fi
+    @cd ..
 
 # opens the nix shell
 develop:
