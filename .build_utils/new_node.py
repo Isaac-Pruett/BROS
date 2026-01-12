@@ -6,12 +6,10 @@ Supports both Rust and Python nodes.
 Automatically updates the master flake.nix with the new node.
 """
 
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Literal
 
 RUST_MAIN_TEMPLATE = """use std::time::Duration;
 use zenoh;
@@ -450,7 +448,7 @@ def add_node_to_master_flake(node_name: str, node_type: str):
 
     except Exception as e:
         print(f"✗ Error updating master flake.nix: {e}")
-        print(f"  You may need to manually add the node to the flake.")
+        print("  You may need to manually add the node to the flake.")
         return False
 
 
@@ -475,7 +473,7 @@ def create_rust_node(node_name: str):
     (node_dir / ".gitignore").write_text(GITIGNORE_TEMPLATE)
     (node_dir / "README.md").write_text(
         README_TEMPLATE.format(
-            node_name=node_name, node_type="Rust", run_command=f"cargo run"
+            node_name=node_name, node_type="Rust", run_command="cargo run"
         )
     )
 
@@ -486,11 +484,11 @@ def create_rust_node(node_name: str):
     #     print(f"✓ Node integrated into monorepo")
     #     print(f"\n💡 Run 'nix flake lock' to update lockfile")
 
-    print(f"\n📦 Next steps:")
+    print("\n📦 Next steps:")
     print(f"  cd {node_dir}")
-    print(f"  nix develop        # Enter dev shell")
-    print(f"  cargo build        # Build the project")
-    print(f"  cargo run          # Run the node")
+    print("  nix develop        # Enter dev shell")
+    print("  cargo build        # Build the project")
+    print("  cargo run          # Run the node")
 
 
 def create_python_node(node_name: str):
@@ -519,7 +517,7 @@ def create_python_node(node_name: str):
     (node_dir / ".gitignore").write_text(GITIGNORE_TEMPLATE)
     (node_dir / "README.md").write_text(
         README_TEMPLATE.format(
-            node_name=node_name, node_type="Python", run_command=f"uv run main"
+            node_name=node_name, node_type="Python", run_command="uv run main"
         )
     )
 
@@ -534,11 +532,11 @@ def create_python_node(node_name: str):
     #     print(f"✓ Node integrated into monorepo")
     #     # print(f"\n💡 Run 'nix flake lock' to update lockfile")
 
-    print(f"\n📦 Next steps:")
+    print("\n📦 Next steps:")
     print(f"  cd {node_dir}")
-    print(f"  nix develop       # Enter dev shell")
-    print(f"  uv sync           # install the .venv")
-    print(f"  uv run main       # Run the node")
+    print("  nix develop       # Enter dev shell")
+    print("  uv sync           # install the .venv")
+    print("  uv run main       # Run the node")
 
 
 def main():
