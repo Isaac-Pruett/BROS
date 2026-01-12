@@ -254,7 +254,7 @@ result-*
 target/
 debug/
 .DS_Store
-Cargo.lock
+
 """
 
 README_TEMPLATE = """# {node_name}

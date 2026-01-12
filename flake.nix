@@ -7,6 +7,7 @@
     rust-demo-sub.url = "./rust_sub";
     python-demo-sub.url = "./python_sub";
     simpledemo.url = "./simpledemo";
+    camera-node.url = "./camera";
 
   };
 
@@ -36,6 +37,8 @@
         my_node = inputs.simpledemo.packages.${system}.default;
 
         default = self.packages.${system}.demo;
+
+        camera = inputs.camera-node.packages.${system}.default;
 
 
         # Launcher: Spins up all with shared config
@@ -74,7 +77,7 @@
           syspkgs.just
 
           self.packages.${system}.my_node
-
+          self.packages.${system}.camera
 
         ];
 

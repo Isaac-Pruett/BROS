@@ -1,32 +1,26 @@
-use std::time::Duration;
+use std::process::exit;
 use zenoh;
+
+use a8mini_camera_rs::{self, A8Mini, control::A8MiniSimpleCommand};
 
 #[tokio::main]
 async fn main() -> zenoh::Result<()> {
-    let session =
-        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).await?;
-    let publisher = session.declare_publisher("rust/helloworld").await?;
-    let subscriber = session.declare_subscriber("python/helloworld").await?;
+    let config = zenoh::Config::from_env().unwrap_or(zenoh::Config::default());
+    let session = zenoh::open(config).await?;
 
-    // Wait for subscribers to be ready
-    tokio::time::sleep(Duration::from_millis(500)).await;
-
-    // Now publish
-    publisher.put("Hello, from Rust!").await?;
-    println!("Rust → Published");
-
-    println!("Rust → Waiting for Python message...");
-    match tokio::time::timeout(Duration::from_secs(8), subscriber.recv_async()).await {
-        Ok(Ok(sample)) => {
-            let msg = sample.payload().try_to_string().unwrap_or_default();
-            println!("Rust ← Received: {msg:?}");
+    let cam = match A8Mini::connect().await {
+        Err(e) => {
+            eprintln!("Could not connect to camera: {e}");
+            exit(1);
         }
-        Ok(Err(e)) => println!("Rust ← Error receiving: {e}"),
-        Err(_) => println!("Rust ← Timeout waiting for Python"),
+        Ok(cam) => cam,
+    };
+
+    match cam.send_command(A8MiniSimpleCommand::RebootCamera).await {
+        Ok(_) => println!("Camera rebooted successfully"),
+        Err(e) => eprintln!("Could not reboot camera: {e}"),
     }
 
-    println!("Rust done!");
     session.close().await?;
     Ok(())
 }
-
