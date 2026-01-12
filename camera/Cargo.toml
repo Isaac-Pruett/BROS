@@ -1,0 +1,13 @@
+[package]
+name = "camera"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+a8mini-camera-rs = "0.1.7"
+tokio = { version = "1", features = ["full"] }
+zenoh = "1.0"
+
+[[bin]]
+name = "camera"
+path = "src/main.rs"
