@@ -50,5 +50,7 @@ Nix will install [just](https://just.systems) into your shell. For those familia
 ```sh
 just new <node name> <type: python | rust>
 ```
+> **_NOTE:_**  In this project, by running "just" or "just --list" the justfile will display helpful info about the recipes available. Just is also aliased to "j" in the Nix shell
+
 
 The python script in .build_utils will run, creating a new node and locking it through uv or cargo.

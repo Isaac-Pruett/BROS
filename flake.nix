@@ -83,7 +83,8 @@
         shellHook = ''
           # export ZENOH_CONFIG=${sharedConfig}
           alias j="just"
-          echo "Master dev shell ready. Run 'demo-ping-pong-zenoh' to start demo."
+          echo "Run 'demo-ping-pong-zenoh' to start demo."
+          echo "just is aliased to j"
         '';
       };
     });
