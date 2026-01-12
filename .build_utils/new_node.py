@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i python3 -p python3
+#! nix-shell -i python3 -p python3 cargo uv
 """
 Create a new Zenoh node with template files.
 Supports both Rust and Python nodes.
@@ -8,6 +8,7 @@ Automatically updates the master flake.nix with the new node.
 
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Literal
@@ -558,8 +559,10 @@ def main():
 
     if node_type == "rust":
         create_rust_node(node_name)
-    else:
+        subprocess.run(["cargo", "check"], cwd=node_name)
+    elif node_type == "python":
         create_python_node(node_name)
+        subprocess.run(["uv", "sync"], cwd=node_name)
 
 
 if __name__ == "__main__":
