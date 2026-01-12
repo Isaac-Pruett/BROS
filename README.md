@@ -42,3 +42,13 @@ demo-ping-pong-zenoh
 
 
 ## Creating a new node
+```sh
+nix develop
+```
+Nix will install [just](https://just.systems) into your shell. For those familiar with makefiles, its essentially similar. For those unfamiliar to makefiles, it's "just a command runner" that allows us to write more concise commands.
+
+```sh
+just new <node name> <type: python | rust>
+```
+
+The python script in .build_utils will run, creating a new node and locking it through uv or cargo.
