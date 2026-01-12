@@ -559,7 +559,7 @@ def main():
 
     if node_type == "rust":
         create_rust_node(node_name)
-        subprocess.run(["cargo", "check"], cwd=node_name)
+        subprocess.run(["cargo", "fetch"], cwd=node_name)
     elif node_type == "python":
         create_python_node(node_name)
         subprocess.run(["uv", "sync"], cwd=node_name)
