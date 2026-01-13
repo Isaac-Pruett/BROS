@@ -1,5 +1,6 @@
 use std::process::exit;
 use zenoh;
+use zenoh::Wait;
 
 use a8mini_camera_rs::{self, A8Mini, control::A8MiniSimpleCommand};
 
@@ -11,6 +12,8 @@ use gstreamer_app as gst_app;
 async fn main() -> zenoh::Result<()> {
     let config = zenoh::Config::from_env().unwrap_or(zenoh::Config::default());
     let session = zenoh::open(config).await?;
+
+    let img_pub = session.declare_publisher("camera/video").await?;
 
     gst::init().expect("Failed to initialize GStreamer");
 
@@ -68,10 +71,15 @@ async fn main() -> zenoh::Result<()> {
                 let buffer = sample.buffer().ok_or(gst::FlowError::Error)?;
                 let map = buffer.map_readable().map_err(|_| gst::FlowError::Error)?;
 
-                // Process the frame here
-                println!("Received frame with {} bytes", map.len());
+                // Get the actual frame data
+                let frame_data = map.as_slice();
+                println!("Received frame with {} bytes", frame_data.len());
 
-                // You can publish to Zenoh here, process with CV, etc.
+                // Publish to Zenoh
+                img_pub.put(frame_data).wait().map_err(|e| {
+                    eprintln!("Failed to publish frame: {}", e);
+                    gst::FlowError::Error
+                })?;
 
                 Ok(gst::FlowSuccess::Ok)
             })
