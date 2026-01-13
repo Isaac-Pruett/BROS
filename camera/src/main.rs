@@ -30,6 +30,7 @@ async fn main() -> zenoh::Result<()> {
     //     rtsp_url
     // );
 
+    // Isaac laptop cam BEGIN
     let video_device = "0"; // Camera index (0 is usually the default camera)
     println!("Connecting to video device: {}", video_device);
 
@@ -37,6 +38,7 @@ async fn main() -> zenoh::Result<()> {
         "avfvideosrc device-index={} ! videoconvert ! appsink name=sink",
         video_device
     );
+    // Isaac loptop cam END
 
     let pipeline = gst::parse::launch(&pipeline_str)
         .expect("Failed to create pipeline.")
