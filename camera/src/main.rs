@@ -1,6 +1,6 @@
 use std::process::exit;
-use zenoh;
 use zenoh::Wait;
+use zenoh::{self, pubsub::Publisher};
 
 use a8mini_camera_rs::{self, A8Mini, control::A8MiniSimpleCommand};
 
@@ -25,7 +25,14 @@ async fn main() -> zenoh::Result<()> {
         Ok(cam) => cam,
     };
 
-    // RTSP addr of the main (HQ) video stream off of the a8.
+    set_up_rtsp(img_pub);
+
+    session.close().await?;
+    Ok(())
+}
+
+fn set_up_rtsp(img_pub: Publisher<'static>) {
+    // // RTSP addr of the main (HQ) video stream off of the a8.
     // let rtsp_url = "rtsp://192.168.144.25:8554/video1";
     // println!("Connecting to RTSP stream: {}", rtsp_url);
     // let pipeline_str = format!(
@@ -128,7 +135,4 @@ async fn main() -> zenoh::Result<()> {
     pipeline
         .set_state(gst::State::Null)
         .expect("Failed to set pipeline to Null");
-
-    session.close().await?;
-    Ok(())
 }
