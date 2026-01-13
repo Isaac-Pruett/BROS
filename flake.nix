@@ -7,6 +7,7 @@
     rust-demo-sub.url = "./rust_sub";
     python-demo-sub.url = "./python_sub";
     simpledemo.url = "./simpledemo";
+    camera-node.url = "./camera";
 
   };
 
@@ -29,7 +30,7 @@
 
     in {
       # Expose subproject packages for composition
-      packages = {
+      nodes = {
         rust_demo = inputs.rust-demo-sub.packages.${system}.default;
         python_demo = inputs.python-demo-sub.packages.${system}.default;
 
@@ -37,13 +38,15 @@
 
         default = self.packages.${system}.demo;
 
+        camera = inputs.camera-node.packages.${system}.default;
+
 
         # Launcher: Spins up all with shared config
         demo = syspkgs.writeShellApplication {
           name = "demo-ping-pong-zenoh";
           runtimeInputs = [
-            self.packages.${system}.rust_demo
-            self.packages.${system}.python_demo
+            self.nodes.${system}.rust_demo
+            self.nodes.${system}.python_demo
 
           ];
           text = ''
@@ -68,20 +71,20 @@
       devShells.default = syspkgs.mkShell {
         packages = [
           # pkgs.zenoh
-          self.packages.${system}.demo
-          self.packages.${system}.rust_demo
-          self.packages.${system}.python_demo
+          self.nodes.${system}.demo
+          self.nodes.${system}.rust_demo
+          self.nodes.${system}.python_demo
           syspkgs.just
 
-          self.packages.${system}.my_node
-
+          self.nodes.${system}.my_node
+          self.nodes.${system}.camera
 
         ];
 
         env.ZENOH_CONFIG = sharedConfig;
 
         shellHook = ''
-          # export ZENOH_CONFIG=${sharedConfig}
+          export ZENOH_CONFIG=${sharedConfig}
           alias j="just"
           echo "Run 'demo-ping-pong-zenoh' to start demo."
           echo "just is aliased to j"
