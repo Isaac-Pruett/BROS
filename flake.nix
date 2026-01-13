@@ -84,7 +84,7 @@
         env.ZENOH_CONFIG = sharedConfig;
 
         shellHook = ''
-          # export ZENOH_CONFIG=${sharedConfig}
+          export ZENOH_CONFIG=${sharedConfig}
           alias j="just"
           echo "Run 'demo-ping-pong-zenoh' to start demo."
           echo "just is aliased to j"
