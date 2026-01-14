@@ -1,6 +1,6 @@
 {
   "nodes": {
-    "camera-node": {
+    "camera-package": {
       "inputs": {
         "naersk": "naersk",
         "nixpkgs": "nixpkgs_2",
@@ -19,7 +19,7 @@
     "fenix": {
       "inputs": {
         "nixpkgs": [
-          "camera-node",
+          "camera-package",
           "naersk",
           "nixpkgs"
         ],
@@ -351,7 +351,7 @@
     },
     "root": {
       "inputs": {
-        "camera-node": "camera-node",
+        "camera-package": "camera-package",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs_3",
         "python-demo-sub": "python-demo-sub",
