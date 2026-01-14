@@ -7,7 +7,6 @@
     rust-demo-sub.url = "./rust_sub";
     python-demo-sub.url = "./python_sub";
     simpledemo.url = "./simpledemo";
-    camera-package.url = "./camera";
   };
 
   outputs = inputs @ { flake-parts, ... }:
@@ -33,7 +32,6 @@
           rust_demo = inputs.rust-demo-sub.packages.${system}.default;
           python_demo = inputs.python-demo-sub.packages.${system}.default;
           my_node = inputs.simpledemo.packages.${system}.default;
-          camera = inputs.camera-package.packages.${system}.default;
 
           # Launcher: Spins up all with shared config
           demo = pkgs.writeShellApplication {
@@ -65,7 +63,7 @@
             self'.packages.demo
             self'.packages.rust_demo
             self'.packages.python_demo
-            self'.packages.camera
+
             self'.packages.my_node
             pkgs.just
           ];
