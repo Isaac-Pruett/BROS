@@ -28,7 +28,6 @@ nuke: clean
 # creates a new node from the script, with NAME as the node name, and BUILD as the build type (currently python or rust)
 new NAME BUILD:
     @ ./.build_utils/new_node.py {{ NAME }} {{ BUILD }}
-    @nix flake lock
 
 # opens the nix shell
 develop:
