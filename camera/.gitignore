@@ -1,0 +1,11 @@
+.zed
+.vscode
+.venv
+.direnv
+*/__pycache__
+*.pyc
+result
+result-*
+target/
+debug/
+.DS_Store
