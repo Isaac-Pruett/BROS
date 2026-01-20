@@ -48,7 +48,7 @@
         packages = {
           rust_demo = inputs.rust-demo-sub.packages.${system}.default;
           python_demo = inputs.python-demo-sub.packages.${system}.default;
-          my_node = inputs.simpledemo.packages.${system}.default;
+          hello_world = inputs.simpledemo.packages.${system}.default;
 
           # Launcher: Spins up all with shared config
           demo = pkgs.writeShellApplication {
@@ -81,7 +81,7 @@
             self'.packages.rust_demo
             self'.packages.python_demo
 
-            self'.packages.my_node
+            self'.packages.hello_world
 
             pkgs.just
             pkgs.uv
