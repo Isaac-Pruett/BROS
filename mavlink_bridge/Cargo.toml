@@ -1,0 +1,13 @@
+[package]
+name = "mavlink_bridge"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+mavlink = {version = "0.17.0", features = ["ardupilotmega", "common"]}
+tokio = { version = "1", features = ["full"] }
+zenoh = "1.0"
+
+[[bin]]
+name = "mavlink_bridge"
+path = "src/main.rs"
