@@ -5,6 +5,8 @@ description = "Add your description here"
 requires-python = ">=3.12"
 dependencies = [
  "eclipse-zenoh>=1.7.1",
+ "flatbuffers>=25.12.19",
+
 ]
 
 # this defines the entrypoint of the python program.
