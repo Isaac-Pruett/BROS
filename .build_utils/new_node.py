@@ -53,6 +53,7 @@ edition = "2024"
 [dependencies]
 tokio = {{ version = "1", features = ["full"] }}
 zenoh = "1.0"
+flatbuffers = "25.12.19"
 
 [[bin]]
 name = "{node_name}"
@@ -106,6 +107,8 @@ description = "{node_name} - Python Zenoh Node"
 requires-python = ">=3.12"
 dependencies = [
  "eclipse-zenoh>=1.7.1",
+ "flatbuffers>=25.12.19",
+
 ]
 
 # this defines the entrypoint of the python program.
