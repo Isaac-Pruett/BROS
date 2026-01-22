@@ -5,6 +5,8 @@ use zenoh;
 use mavlink::ardupilotmega::{HIL_STATE_DATA, MavMessage};
 use mavlink::{self, MavConnection, MavlinkVersion};
 
+mod state_generated;
+
 #[tokio::main]
 async fn main() -> zenoh::Result<()> {
     let session =
@@ -13,7 +15,7 @@ async fn main() -> zenoh::Result<()> {
     let mut mav = mavlink::connect::<MavMessage>("serial:/dev/ttyTHS1:921600")
         .expect("Failed to connect UART to MAVLink");
 
-    let mut attitude_pub = session.declare_publisher("mavlink/attitude").await?;
+    let state_pub = session.declare_publisher("mavlink/state").await?;
 
     // Wait for subscribers to be ready
     tokio::time::sleep(Duration::from_millis(500)).await;
@@ -27,6 +29,42 @@ async fn main() -> zenoh::Result<()> {
                 }
                 MavMessage::HIL_STATE_QUATERNION(data) => {
                     println!("{:?}", data);
+
+                    attitude_pub
+                        .put(
+                            data.attitude_quaternion
+                                .iter()
+                                .flat_map(|&x| x.to_ne_bytes())
+                                .collect::<Vec<u8>>(),
+                        )
+                        .await?;
+
+                    let pos = vec![data.lon, data.lat, data.alt];
+                    pos_pub
+                        .put(
+                            pos.iter()
+                                .flat_map(|x| x.to_ne_bytes())
+                                .collect::<Vec<u8>>(),
+                        )
+                        .await?;
+
+                    let velo = vec![data.vx, data.vy, data.vz];
+                    velo_pub
+                        .put(
+                            velo.iter()
+                                .flat_map(|x| x.to_ne_bytes())
+                                .collect::<Vec<u8>>(),
+                        )
+                        .await?;
+
+                    let acc = vec![data.xacc, data.yacc, data.zacc];
+                    acc_pub
+                        .put(
+                            acc.iter()
+                                .flat_map(|x| x.to_ne_bytes())
+                                .collect::<Vec<u8>>(),
+                        )
+                        .await?;
                 }
                 MavMessage::GLOBAL_POSITION_INT(data) => {
                     println!("{:?}", data);
