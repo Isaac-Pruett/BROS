@@ -85,7 +85,6 @@
 
             pkgs.just
             pkgs.uv
-            pkgs.flatbuffers
 
           ];
           env.ZENOH_CONFIG = sharedConfig;
