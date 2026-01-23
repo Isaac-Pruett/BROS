@@ -1,11 +1,10 @@
 use mavlink::error::MessageReadError;
+
 use std::time::Duration;
 use zenoh;
 
-use mavlink::ardupilotmega::{HIL_STATE_DATA, MavMessage};
-use mavlink::{self, MavConnection, MavlinkVersion};
-
-mod state_generated;
+use mavlink::ardupilotmega::MavMessage;
+use mavlink::{self, MavConnection, MavlinkVersion, MessageData};
 
 #[tokio::main]
 async fn main() -> zenoh::Result<()> {
@@ -30,41 +29,12 @@ async fn main() -> zenoh::Result<()> {
                 MavMessage::HIL_STATE_QUATERNION(data) => {
                     println!("{:?}", data);
 
-                    attitude_pub
-                        .put(
-                            data.attitude_quaternion
-                                .iter()
-                                .flat_map(|&x| x.to_ne_bytes())
-                                .collect::<Vec<u8>>(),
-                        )
-                        .await?;
+                    let mut buf = [0u8; 255];
+                    let written_ct = data.ser(MavlinkVersion::V2, &mut buf);
 
-                    let pos = vec![data.lon, data.lat, data.alt];
-                    pos_pub
-                        .put(
-                            pos.iter()
-                                .flat_map(|x| x.to_ne_bytes())
-                                .collect::<Vec<u8>>(),
-                        )
-                        .await?;
+                    let payload = &buf[..written_ct];
 
-                    let velo = vec![data.vx, data.vy, data.vz];
-                    velo_pub
-                        .put(
-                            velo.iter()
-                                .flat_map(|x| x.to_ne_bytes())
-                                .collect::<Vec<u8>>(),
-                        )
-                        .await?;
-
-                    let acc = vec![data.xacc, data.yacc, data.zacc];
-                    acc_pub
-                        .put(
-                            acc.iter()
-                                .flat_map(|x| x.to_ne_bytes())
-                                .collect::<Vec<u8>>(),
-                        )
-                        .await?;
+                    state_pub.put(payload).await?;
                 }
                 MavMessage::GLOBAL_POSITION_INT(data) => {
                     println!("{:?}", data);
