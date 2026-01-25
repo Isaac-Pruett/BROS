@@ -1,3 +1,4 @@
+use mavlink::common::HIL_STATE_QUATERNION_DATA;
 use mavlink::error::MessageReadError;
 
 use std::time::Duration;
@@ -29,14 +30,16 @@ async fn main() -> zenoh::Result<()> {
                 MavMessage::HIL_STATE_QUATERNION(data) => {
                     println!("{:?}", data);
 
-                    let mut buf = [0u8; 255];
+                    let mut buf = [0u8; HIL_STATE_QUATERNION_DATA::ENCODED_LEN];
                     let written_ct = data.ser(MavlinkVersion::V2, &mut buf);
 
                     let payload = &buf[..written_ct];
 
                     state_pub.put(payload).await?;
                 }
-                MavMessage::GLOBAL_POSITION_INT(data) => {
+                MavMessage::TRAJECTORY_REPRESENTATION_WAYPOINTS(data) => {}
+
+                MavMessage::ACTUATOR_OUTPUT_STATUS(data) => {
                     println!("{:?}", data);
                 }
 
