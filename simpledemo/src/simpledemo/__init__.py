@@ -1,12 +1,10 @@
 """
-simpledemo - Python Zenoh Demo Node
+simpledemo - Python -- Hello, World! -- Node
 """
-
-from time import sleep
 
 
 def main():
-    print("HELLOOOOOOOOO, WORLD!")
+    print("Hello, World!")
 
 
 if __name__ == "__main__":

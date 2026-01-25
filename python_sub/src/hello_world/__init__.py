@@ -1,17 +1,15 @@
+import os
+import sys
 from time import sleep
 
 import zenoh
 
 
-# a callback to run by the subscriber
-def listen(sample: zenoh.Sample):
-    print("Python ← Received:", sample.payload.to_string())
-
-
 def main():
     with zenoh.open(zenoh.Config().from_env()) as session:
         pub = session.declare_publisher("python/helloworld")
-        sub = session.declare_subscriber("rust/helloworld", listen)
+
+        sub = session.declare_subscriber("rust/helloworld")
 
         # Wait for subscribers to be ready
         sleep(0.5)
@@ -19,6 +17,10 @@ def main():
         # Now publish
         pub.put("Hello, from Python!")
         print("Python → Published")
+
+        sample = sub.recv()
+
+        print("Python ← Received:", sample.payload.to_string())
 
         print("Python → Waiting for Rust message...")
 
