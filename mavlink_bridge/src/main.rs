@@ -1,3 +1,4 @@
+use flatbuffers::FlatBufferBuilder;
 use mavlink::common::HIL_STATE_QUATERNION_DATA;
 use mavlink::error::MessageReadError;
 
@@ -6,6 +7,10 @@ use zenoh;
 
 use mavlink::ardupilotmega::MavMessage;
 use mavlink::{self, MavConnection, MavlinkVersion, MessageData};
+
+use crate::MAV_generated::mavlink_fb::HilStateQuaternion;
+
+mod MAV_generated;
 
 #[tokio::main]
 async fn main() -> zenoh::Result<()> {
@@ -30,12 +35,34 @@ async fn main() -> zenoh::Result<()> {
                 MavMessage::HIL_STATE_QUATERNION(data) => {
                     println!("{:?}", data);
 
-                    let mut buf = [0u8; HIL_STATE_QUATERNION_DATA::ENCODED_LEN];
-                    let written_ct = data.ser(MavlinkVersion::V2, &mut buf);
+                    let mut builder = FlatBufferBuilder::new();
 
-                    let payload = &buf[..written_ct];
+                    // Create the struct directly
+                    let state = HilStateQuaternion::new(
+                        data.time_usec,
+                        &data.attitude_quaternion,
+                        data.rollspeed,
+                        data.pitchspeed,
+                        data.yawspeed,
+                        data.lat,
+                        data.lon,
+                        data.alt,
+                        data.vx,
+                        data.vy,
+                        data.vz,
+                        data.ind_airspeed,
+                        data.true_airspeed,
+                        data.xacc,
+                        data.yacc,
+                        data.zacc,
+                    );
 
-                    state_pub.put(payload).await?;
+                    builder.push(state);
+
+                    // Get the serialized bytes
+                    let payload = builder.finished_data();
+
+                    state_pub.put(payload).await?
                 }
                 MavMessage::TRAJECTORY_REPRESENTATION_WAYPOINTS(data) => {}
 

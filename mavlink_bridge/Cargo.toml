@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+flatbuffers = "25.12.19"
 
 mavlink = {version = "0.17.0", features = ["ardupilotmega", "common"]}
 tokio = { version = "1", features = ["full"] }
