@@ -15,6 +15,11 @@
         packages.default = naersk-lib.buildPackage {
           src = ./.;
           pname = "mavlink_bridge";
+
+          nativeBuildInputs = [
+            pkgs.git
+          ];
+
           # Optional: customize if needed
           # doCheck = true;
           # release = false;  # already default in naersk
