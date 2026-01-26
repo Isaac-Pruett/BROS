@@ -6,7 +6,8 @@ edition = "2024"
 [dependencies]
 flatbuffers = "25.12.19"
 tokio = "1.49.0"
-zenoh = "1.7.1"
+zenoh = {version = "1", features = ["shared-memory"]}
+
 
 
 # this defines the binaries to build in the nix build schema

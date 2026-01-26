@@ -52,7 +52,8 @@ edition = "2024"
 
 [dependencies]
 tokio = {{ version = "1", features = ["full"] }}
-zenoh = "1.0"
+zenoh = {version = "1", features = ["shared-memory"]}
+
 flatbuffers = "25.12.19"
 
 [[bin]]
