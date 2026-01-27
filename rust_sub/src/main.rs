@@ -1,31 +1,30 @@
-use std::time::Duration;
+use std::{thread::sleep, time::Duration};
 use zenoh;
+use zenoh::Wait;
 
-#[tokio::main]
-async fn main() -> zenoh::Result<()> {
+fn main() -> zenoh::Result<()> {
     let session =
-        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).await?;
-    let publisher = session.declare_publisher("rust/helloworld").await?;
-    let subscriber = session.declare_subscriber("python/helloworld").await?;
+        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).wait()?;
+    let publisher = session.declare_publisher("rust/helloworld").wait()?;
+    let subscriber = session.declare_subscriber("python/helloworld").wait()?;
 
     // Wait for subscribers to be ready
-    tokio::time::sleep(Duration::from_millis(500)).await;
+    sleep(Duration::from_millis(500));
 
     // Now publish
-    publisher.put("Hello, from Rust!").await?;
+    publisher.put("Hello, from Rust!").wait()?;
     println!("Rust → Published");
 
     println!("Rust → Waiting for Python message...");
-    match tokio::time::timeout(Duration::from_secs(8), subscriber.recv_async()).await {
-        Ok(Ok(sample)) => {
+    match subscriber.recv() {
+        Ok(sample) => {
             let msg = sample.payload().try_to_string().unwrap_or_default();
             println!("Rust ← Received: {msg:?}");
         }
-        Ok(Err(e)) => println!("Rust ← Error receiving: {e}"),
-        Err(_) => println!("Rust ← Timeout waiting for Python"),
+        Err(e) => println!("Rust ← Error receiving: {e}"),
     }
 
     println!("Rust done!");
-    session.close().await?;
+    session.close().wait()?;
     Ok(())
 }
