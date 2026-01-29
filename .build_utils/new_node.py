@@ -40,7 +40,7 @@ fn main() -> zenoh::Result<()> {{
     println!("Rust done!");
     session.close().wait()?;
     Ok(())
-}
+}}
 
 
 """
