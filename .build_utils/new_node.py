@@ -35,7 +35,7 @@ fn main() -> zenoh::Result<()> {{
             println!("Rust ← Received: {{msg:?}}");
             }}
             Err(e) => println!("Rust ← Error receiving: {{e}}"),
-    }
+    }}
 
     println!("Rust done!");
     session.close().wait()?;
@@ -52,7 +52,7 @@ edition = "2024"
 
 [dependencies]
 tokio = {{ version = "1", features = ["full"] }}
-zenoh = {version = "1", features = ["shared-memory"]}
+zenoh = {{version = "1", features = ["shared-memory"]}}
 
 flatbuffers = "25.12.19"
 
