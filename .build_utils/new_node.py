@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i python3 -p python3 cargo uv
+#! nix-shell -i python3 -p python3 cargo uv direnv
 """
 Create a new Zenoh node with template files.
 Supports both Rust and Python nodes.
@@ -127,36 +127,42 @@ PYTHON_MAIN_TEMPLATE = """
 \"\"\"
 {node_name} - Python Zenoh Node
 \"\"\"
+import os
+import sys
 from time import sleep
 
 import zenoh
 
 
-# a callback to run by the subscriber
-def listen(sample: zenoh.Sample):
+def main():
+    try:
+        session = zenoh.open(zenoh.Config().from_env())
+    except zenoh.ZError:
+        session = zenoh.open(zenoh.Config())
+
+    pub = session.declare_publisher("python/helloworld")
+
+    sub = session.declare_subscriber("rust/helloworld")
+
+    # Wait for subscribers to be ready
+    sleep(0.5)
+
+    # Now publish
+    pub.put("Hello, from Python!")
+    print("Python → Published")
+    print("Python → Waiting for Rust message...")
+
+    sample = sub.recv()
+
     print("Python ← Received:", sample.payload.to_string())
 
-
-def main():
-    with zenoh.open(zenoh.Config().from_env()) as session:
-        pub = session.declare_publisher("python/helloworld")
-        sub = session.declare_subscriber("rust/helloworld", listen)
-
-        # Wait for subscribers to be ready
-        sleep(0.5)
-
-        # Now publish
-        pub.put("Hello, from Python!")
-        print("Python → Published")
-
-        print("Python → Waiting for Rust message...")
-
-        print("Python done!")
-        session.close()
+    print("Python done!")
+    session.close()
 
 
 if __name__ == "__main__":
     main()
+
 
 """
 
@@ -404,6 +410,8 @@ def main():
     elif node_type == "python":
         create_python_node(node_name)
         subprocess.run(["uv", "sync"], cwd=node_name)
+
+    subprocess.run(["direnv", "allow"], cwd=node_name)
 
 
 if __name__ == "__main__":
