@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i python3 -p python3 cargo uv
+#! nix-shell -i python3 -p python3 cargo uv direnv
 """
 Create a new Zenoh node with template files.
 Supports both Rust and Python nodes.
@@ -11,37 +11,37 @@ import subprocess
 import sys
 from pathlib import Path
 
-RUST_MAIN_TEMPLATE = """use std::time::Duration;
+RUST_MAIN_TEMPLATE = """use std::{{thread::sleep, time::Duration}};
 use zenoh;
+use zenoh::Wait;
 
-#[tokio::main]
-async fn main() -> zenoh::Result<()> {{
+fn main() -> zenoh::Result<()> {{
     let session =
-        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).await?;
-    let publisher = session.declare_publisher("rust/helloworld").await?;
-    let subscriber = session.declare_subscriber("python/helloworld").await?;
+        zenoh::open(zenoh::Config::from_env().unwrap_or(zenoh::Config::default())).wait()?;
+    let publisher = session.declare_publisher("rust/helloworld").wait()?;
+    let subscriber = session.declare_subscriber("python/helloworld").wait()?;
 
     // Wait for subscribers to be ready
-    tokio::time::sleep(Duration::from_millis(500)).await;
+    sleep(Duration::from_millis(500));
 
     // Now publish
-    publisher.put("Hello, from Rust!").await?;
+    publisher.put("Hello, from Rust!").wait()?;
     println!("Rust → Published");
 
     println!("Rust → Waiting for Python message...");
-    match tokio::time::timeout(Duration::from_secs(8), subscriber.recv_async()).await {{
-        Ok(Ok(sample)) => {{
+    match subscriber.recv() {{
+        Ok(sample) => {{
             let msg = sample.payload().try_to_string().unwrap_or_default();
             println!("Rust ← Received: {{msg:?}}");
-        }}
-        Ok(Err(e)) => println!("Rust ← Error receiving: {{e}}"),
-        Err(_) => println!("Rust ← Timeout waiting for Python"),
+            }}
+            Err(e) => println!("Rust ← Error receiving: {{e}}"),
     }}
 
     println!("Rust done!");
-    session.close().await?;
+    session.close().wait()?;
     Ok(())
 }}
+
 
 """
 
@@ -52,7 +52,8 @@ edition = "2024"
 
 [dependencies]
 tokio = {{ version = "1", features = ["full"] }}
-zenoh = "1.0"
+zenoh = {{version = "1", features = ["shared-memory"]}}
+
 flatbuffers = "25.12.19"
 
 [[bin]]
@@ -126,36 +127,42 @@ PYTHON_MAIN_TEMPLATE = """
 \"\"\"
 {node_name} - Python Zenoh Node
 \"\"\"
+import os
+import sys
 from time import sleep
 
 import zenoh
 
 
-# a callback to run by the subscriber
-def listen(sample: zenoh.Sample):
+def main():
+    try:
+        session = zenoh.open(zenoh.Config().from_env())
+    except zenoh.ZError:
+        session = zenoh.open(zenoh.Config())
+
+    pub = session.declare_publisher("python/helloworld")
+
+    sub = session.declare_subscriber("rust/helloworld")
+
+    # Wait for subscribers to be ready
+    sleep(0.5)
+
+    # Now publish
+    pub.put("Hello, from Python!")
+    print("Python → Published")
+    print("Python → Waiting for Rust message...")
+
+    sample = sub.recv()
+
     print("Python ← Received:", sample.payload.to_string())
 
-
-def main():
-    with zenoh.open(zenoh.Config().from_env()) as session:
-        pub = session.declare_publisher("python/helloworld")
-        sub = session.declare_subscriber("rust/helloworld", listen)
-
-        # Wait for subscribers to be ready
-        sleep(0.5)
-
-        # Now publish
-        pub.put("Hello, from Python!")
-        print("Python → Published")
-
-        print("Python → Waiting for Rust message...")
-
-        print("Python done!")
-        session.close()
+    print("Python done!")
+    session.close()
 
 
 if __name__ == "__main__":
     main()
+
 
 """
 
@@ -403,6 +410,8 @@ def main():
     elif node_type == "python":
         create_python_node(node_name)
         subprocess.run(["uv", "sync"], cwd=node_name)
+
+    subprocess.run(["direnv", "allow"], cwd=node_name)
 
 
 if __name__ == "__main__":

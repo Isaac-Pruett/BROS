@@ -6,26 +6,29 @@ import zenoh
 
 
 def main():
-    with zenoh.open(zenoh.Config().from_env()) as session:
-        pub = session.declare_publisher("python/helloworld")
+    try:
+        session = zenoh.open(zenoh.Config().from_env())
+    except zenoh.ZError:
+        session = zenoh.open(zenoh.Config())
 
-        sub = session.declare_subscriber("rust/helloworld")
+    pub = session.declare_publisher("python/helloworld")
 
-        # Wait for subscribers to be ready
-        sleep(0.5)
+    sub = session.declare_subscriber("rust/helloworld")
 
-        # Now publish
-        pub.put("Hello, from Python!")
-        print("Python → Published")
+    # Wait for subscribers to be ready
+    sleep(0.5)
 
-        sample = sub.recv()
+    # Now publish
+    pub.put("Hello, from Python!")
+    print("Python → Published")
+    print("Python → Waiting for Rust message...")
 
-        print("Python ← Received:", sample.payload.to_string())
+    sample = sub.recv()
 
-        print("Python → Waiting for Rust message...")
+    print("Python ← Received:", sample.payload.to_string())
 
-        print("Python done!")
-        session.close()
+    print("Python done!")
+    session.close()
 
 
 if __name__ == "__main__":
