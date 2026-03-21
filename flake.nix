@@ -61,9 +61,9 @@
               export ZENOH_CONFIG=${sharedConfig}
               echo "Launching with shared config: $ZENOH_CONFIG"
               # Start processes in background
-              hello &
+              python_sub &
               PYTHON_PID=$!
-              rust-zenoh-app &
+              rust_sub &
               RUST_PID=$!
               # Trap EXIT and SIGINT (Ctrl+C)
               trap 'kill $PYTHON_PID $RUST_PID 2>/dev/null' EXIT SIGINT
