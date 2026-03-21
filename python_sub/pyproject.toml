@@ -1,0 +1,19 @@
+[project]
+name = "python_sub"
+version = "0.1.0"
+description = "python_sub - Python Zenoh Node"
+requires-python = ">=3.12"
+dependencies = [
+ "eclipse-zenoh>=1.7.1",
+ "flatbuffers>=25.12.19",
+
+]
+
+
+# this defines the entrypoint of the python program.
+[project.scripts]
+python_sub = "python_sub:main"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"
