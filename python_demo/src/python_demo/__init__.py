@@ -14,7 +14,7 @@ def main():
 
         time.sleep(2)  # wait for subs
 
-        msg = TaggedString(id=42, s="hello from python!")
+        msg = TaggedString(id=67, s="hello from python!")
         publisher.put(msg.to_msgpack())
         print(f"Sent: {msg}")
 
