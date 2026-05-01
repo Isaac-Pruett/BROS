@@ -15,28 +15,32 @@ async fn main() -> zenoh::Result<()> {
 
     tokio::time::sleep(Duration::from_secs(2)).await; //wait on subs
 
-    let att = TaggedString {
+    let packet = TaggedString {
         id: 42,
         s: "hello from rust!".into(),
     };
 
     // Serialize and publish
     let mut buf = Vec::new();
-    att.serialize(&mut Serializer::new(&mut buf))
-        .expect("Failed to serialize att");
+    packet
+        .serialize(&mut Serializer::new(&mut buf))
+        .expect("Failed to serialize packet");
 
-    println!("Sent: {:?}", att);
+    println!("Sent: {:?}", packet);
 
     publisher.put(buf).await?;
 
     // Wait up to 6 seconds for a reply
-    tokio::time::timeout(Duration::from_secs(6), async move {
-        if let Some(pack) = subscriber.recv().ok() {
-            let bytes = pack.payload().to_bytes();
-            match TaggedString::deserialize(&mut Deserializer::new(&*bytes)) {
-                Ok(msg) => println!("Received: {:?}", msg),
-                Err(e) => eprintln!("Deserialize error: {e}"),
+    tokio::time::timeout(Duration::from_secs(6), async {
+        match subscriber.recv_async().await {
+            Ok(pack) => {
+                let bytes = pack.payload().to_bytes();
+                match TaggedString::deserialize(&mut Deserializer::new(&*bytes)) {
+                    Ok(msg) => println!("Received: {:?}", msg),
+                    Err(e) => eprintln!("Deserialize error: {e}"),
+                }
             }
+            Err(e) => eprintln!("Receive error: {e}"),
         }
     })
     .await

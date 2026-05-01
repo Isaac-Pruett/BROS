@@ -1,5 +1,5 @@
 def main():
-    print("Hello from mynp!")
+    print("Hello from python_demo!")
 
 
 if __name__ == "__main__":

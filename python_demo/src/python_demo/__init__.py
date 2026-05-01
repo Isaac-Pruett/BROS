@@ -18,11 +18,15 @@ def main():
         publisher.put(msg.to_msgpack())
         print(f"Sent: {msg}")
 
-        # Wait up to 6 seconds for a reply
-        sample = subscriber.recv()
-        if sample is not None:
-            received = TaggedString.from_msgpack(bytes(sample.payload))
-            print(f"Received: {received}")
+        deadline = time.time() + 6
+
+        while time.time() < deadline:
+            sample = subscriber.try_recv()
+            if sample is not None:
+                received = TaggedString.from_msgpack(bytes(sample.payload))
+                print(f"Received: {received}")
+                break
+            time.sleep(0.05)
         else:
             print("Timeout: no message received")
 

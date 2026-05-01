@@ -1,5 +1,5 @@
 {
-  description = "myn — Rust Zenoh Node";
+  description = "rust_demo — Rust Zenoh Node";
 
   inputs = {
     flake-parts = {
@@ -50,7 +50,7 @@
         in
         naersk-lib.buildPackage {
           src = ./.;
-          pname = "myn";
+          pname = "rust_demo";
           nativeBuildInputs = [ pkgs.git ];
         };
     };

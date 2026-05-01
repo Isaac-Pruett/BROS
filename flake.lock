@@ -62,6 +62,24 @@
         "type": "github"
       }
     },
+    "flake-parts_3": {
+      "inputs": {
+        "nixpkgs-lib": "nixpkgs-lib_2"
+      },
+      "locked": {
+        "lastModified": 1775087534,
+        "narHash": "sha256-91qqW8lhL7TLwgQWijoGBbiD4t7/q75KTi8NxjVmSmA=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "3107b77cd68437b9a76194f0f7f9c55f2329ca5b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "naersk": {
       "inputs": {
         "fenix": "fenix",
@@ -105,6 +123,21 @@
         "owner": "nix-community",
         "repo": "nixpkgs.lib",
         "rev": "c185c7a5e5dd8f9add5b2f8ebeff00888b070742",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "type": "github"
+      }
+    },
+    "nixpkgs-lib_2": {
+      "locked": {
+        "lastModified": 1774748309,
+        "narHash": "sha256-+U7gF3qxzwD5TZuANzZPeJTZRHS29OFQgkQ2kiTJBIQ=",
+        "owner": "nix-community",
+        "repo": "nixpkgs.lib",
+        "rev": "333c4e0545a6da976206c74db8773a1645b5870a",
         "type": "github"
       },
       "original": {
@@ -177,6 +210,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_6": {
+      "locked": {
+        "lastModified": 1777425547,
+        "narHash": "sha256-d57AbflkNfZNoFaZDzssEq1RfPoM9dLtOGI2O+N/68Q=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ebc08544afa77957cc348ba72dc490ec73b87f68",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "pyproject-build-systems": {
       "inputs": {
         "nixpkgs": [
@@ -235,11 +284,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "path": "./mynp",
+        "path": "./python_demo",
         "type": "path"
       },
       "original": {
-        "path": "./mynp",
+        "path": "./python_demo",
         "type": "path"
       },
       "parent": []
@@ -249,7 +298,8 @@
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
         "python-demo-sub": "python-demo-sub",
-        "rust-demo-sub": "rust-demo-sub"
+        "rust-demo-sub": "rust-demo-sub",
+        "zenohd": "zenohd"
       }
     },
     "rust-analyzer-src": {
@@ -277,11 +327,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "path": "./myn",
+        "path": "./rust_demo",
         "type": "path"
       },
       "original": {
-        "path": "./myn",
+        "path": "./rust_demo",
         "type": "path"
       },
       "parent": []
@@ -328,6 +378,21 @@
         "repo": "uv2nix",
         "type": "github"
       }
+    },
+    "zenohd": {
+      "inputs": {
+        "flake-parts": "flake-parts_3",
+        "nixpkgs": "nixpkgs_6"
+      },
+      "locked": {
+        "path": "./zenohd",
+        "type": "path"
+      },
+      "original": {
+        "path": "./zenohd",
+        "type": "path"
+      },
+      "parent": []
     }
   },
   "root": "root",

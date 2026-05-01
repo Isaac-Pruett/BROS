@@ -1,18 +1,18 @@
 [project]
-name = "python_sub"
+name = "python_demo"
 version = "0.1.0"
-description = "python_sub - Python Zenoh Node"
+description = "python_demo - Python Zenoh Node"
 requires-python = ">=3.12"
 dependencies = [
- "eclipse-zenoh>=1.7.1",
+ "eclipse-zenoh>=1.9",
  "flatbuffers>=25.12.19",
-
+ "msgpack>=1.1.2",
 ]
 
 
 # this defines the entrypoint of the python program.
 [project.scripts]
-python_sub = "python_sub:main"
+python_demo = "python_demo:main"
 
 [build-system]
 requires = ["uv_build>=0.9.0,<0.10.0"]
