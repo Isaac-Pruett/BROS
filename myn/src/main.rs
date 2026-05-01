@@ -15,7 +15,7 @@ async fn main() -> zenoh::Result<()> {
 
     tokio::time::sleep(Duration::from_secs(2)).await; //wait on subs
 
-    let att = tagged_string {
+    let att = TaggedString {
         id: 42,
         s: "hello from rust!".into(),
     };
