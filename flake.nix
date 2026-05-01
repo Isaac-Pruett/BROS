@@ -4,8 +4,8 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    rust-demo-sub.url = "./rust_sub";
-    python-demo-sub.url = "./python_sub";
+    rust-demo-sub.url = "./myn";
+    python-demo-sub.url = "./mynp";
 
   };
 
@@ -61,9 +61,9 @@
               export ZENOH_CONFIG=${sharedConfig}
               echo "Launching with shared config: $ZENOH_CONFIG"
               # Start processes in background
-              python_sub &
+              mynp &
               PYTHON_PID=$!
-              rust_sub &
+              myn &
               RUST_PID=$!
               # Trap EXIT and SIGINT (Ctrl+C)
               trap 'kill $PYTHON_PID $RUST_PID 2>/dev/null' EXIT SIGINT
@@ -90,7 +90,7 @@
 
             pkgs.just
             pkgs.uv
-            pkgs.flatbuffers
+
 
           ];
           env.ZENOH_CONFIG = sharedConfig;
