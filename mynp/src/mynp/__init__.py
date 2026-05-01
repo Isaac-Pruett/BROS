@@ -3,7 +3,8 @@ import time
 
 import msgpack
 import zenoh
-from tagged_string import TaggedString
+
+from .tagged_string import TaggedString
 
 
 def main():

@@ -33,7 +33,7 @@ async fn main() -> zenoh::Result<()> {
     tokio::time::timeout(Duration::from_secs(6), async move {
         if let Some(pack) = subscriber.recv().ok() {
             let bytes = pack.payload().to_bytes();
-            match tagged_string::deserialize(&mut Deserializer::new(&*bytes)) {
+            match TaggedString::deserialize(&mut Deserializer::new(&*bytes)) {
                 Ok(msg) => println!("Received: {:?}", msg),
                 Err(e) => eprintln!("Deserialize error: {e}"),
             }
