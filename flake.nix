@@ -58,7 +58,7 @@
           }
         '';
 
-      zenohd = inputs'.zenohd;
+
 
       in {
         # Expose subproject packages for composition
@@ -66,6 +66,7 @@
           rust_demo = inputs.rust-demo-sub.packages.${system}.default;
           python_demo = inputs.python-demo-sub.packages.${system}.default;
 
+          zenohd = inputs.zenohd.packages.${system}.default;
 
           # Launcher: Spins up all with shared config
           demo = pkgs.writeShellApplication {
@@ -74,12 +75,14 @@
               self'.packages.rust_demo
               self'.packages.python_demo
 
+              self'.packages.zenohd
+
             ];
             text = ''
               export ZENOH_CONFIG=${sharedConfig}
               echo "Launching with shared config: $ZENOH_CONFIG"
 
-              ${zenohd} -c ${routerCfg} &
+              zenohd -c ${routerCfg} 1>/dev/null &
               ZENOH_PID=$!
 
               sleep 1
@@ -108,6 +111,7 @@
             self'.packages.demo
             self'.packages.rust_demo
             self'.packages.python_demo
+            self'.packages.zenohd
 
 
             pkgs.just
