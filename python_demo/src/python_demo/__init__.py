@@ -12,7 +12,7 @@ def main():
         publisher = session.declare_publisher("demo/out_py")
         subscriber = session.declare_subscriber("demo/out_rs")
 
-        time.sleep(2)  # wait for subs
+        time.sleep(0.5)  # wait for subs
 
         msg = TaggedString(id=67, s="hello from python!")
         publisher.put(msg.to_msgpack())

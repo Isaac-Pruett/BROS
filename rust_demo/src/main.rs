@@ -13,7 +13,7 @@ async fn main() -> zenoh::Result<()> {
     let publisher = session.declare_publisher("demo/out_rs").await?;
     let subscriber = session.declare_subscriber("demo/out_py").await?;
 
-    tokio::time::sleep(Duration::from_secs(2)).await; //wait on subs
+    tokio::time::sleep(Duration::from_secs_f32(0.5)).await; //wait on subs
 
     let packet = TaggedString {
         id: 42,

@@ -85,7 +85,7 @@
               zenohd -c ${routerCfg} 1>/dev/null &
               ZENOH_PID=$!
 
-              sleep 1
+              sleep 0.5
 
               python_demo &
               PYTHON_PID=$!
