@@ -1,0 +1,7 @@
+# github.com/BooleanCat/option v0.1.0
+## explicit; go 1.21
+github.com/BooleanCat/option
+# github.com/eclipse-zenoh/zenoh-go v1.9.0
+## explicit; go 1.22
+github.com/eclipse-zenoh/zenoh-go/zenoh
+github.com/eclipse-zenoh/zenoh-go/zenoh/internal
