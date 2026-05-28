@@ -11,17 +11,6 @@ BROS is a framework for developing programs and processes that talk to each othe
 Ensure that you have [Nix](https://nixos.org/download/) with [flake](https://nixos.wiki/wiki/Flakes) support installed on your machine.
 
 
-### Running your first node:
-
-```sh
-nix develop
-```
-Then, after the shell has built:
-```sh
-simpledemo
-```
-
-
 
 ### Running the Zenoh demo:
 The next set of commands will run a rust and python node that will communicate over Zenoh.
