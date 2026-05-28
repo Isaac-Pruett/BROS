@@ -6,14 +6,14 @@ result
 target
 
 **/.DS_Store
-.direnv
 .DS_Store
+
+.direnv
 **/.venv
-**/__pycache__˝
+**/__pycache__
 
 
 
 **/.ropeproject
-
 
 tmp

@@ -44,8 +44,8 @@
 
           naersk-lib = pkgs.callPackage inputs.naersk {
 
-            cargo = pkgs.rust-bin.stable.latest.default;
-            rustc = pkgs.rust-bin.stable.latest.default;
+            cargo = pkgs.rust-bin.stable.latest.minimal;
+            rustc = pkgs.rust-bin.stable.latest.minimal;
           };
         in
         naersk-lib.buildPackage {

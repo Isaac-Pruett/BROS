@@ -4,8 +4,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    rust-demo-sub.url = "./rust_sub";
-    python-demo-sub.url = "./python_sub";
+    rust-demo-sub.url = "./rust_demo";
+    python-demo-sub.url = "./python_demo";
+
+
+    zenohd.url = "./zenohd";
 
   };
 
@@ -34,21 +37,36 @@
         # Generate shared Zenoh config (customize as needed; could derive from template)
         sharedConfig = pkgs.writeText "zenoh-config.json" ''
           {
-            "mode": "peer",
-            "listen": { "endpoints": ["tcp/127.0.0.1:0"] },
-            "scouting": {
-              "multicast": {
-                "enabled": true
+            mode: "client",
+            connect: {
+              endpoints: ["tcp/127.0.0.1:7447"]
+            },
+            scouting: {
+              multicast: {
+                enabled: false
               }
             }
           }
         '';
+
+        routerCfg = pkgs.writeText "zenoh-router-cfg.json" ''
+          {
+            mode: "router",
+            listen: {
+              endpoints: ["tcp/127.0.0.1:7447"]
+            }
+          }
+        '';
+
+
+
       in {
         # Expose subproject packages for composition
         packages = {
           rust_demo = inputs.rust-demo-sub.packages.${system}.default;
           python_demo = inputs.python-demo-sub.packages.${system}.default;
 
+          zenohd = inputs.zenohd.packages.${system}.default;
 
           # Launcher: Spins up all with shared config
           demo = pkgs.writeShellApplication {
@@ -56,23 +74,30 @@
             runtimeInputs = [
               self'.packages.rust_demo
               self'.packages.python_demo
+
+              self'.packages.zenohd
+
             ];
             text = ''
               export ZENOH_CONFIG=${sharedConfig}
               echo "Launching with shared config: $ZENOH_CONFIG"
-              # Start processes in background
-              python_sub &
+
+              zenohd -c ${routerCfg} 1>/dev/null &
+              ZENOH_PID=$!
+
+              sleep 0.5
+
+              python_demo &
               PYTHON_PID=$!
-              rust_sub &
+
+              rust_demo &
               RUST_PID=$!
-              # Trap EXIT and SIGINT (Ctrl+C)
-              trap 'kill $PYTHON_PID $RUST_PID 2>/dev/null' EXIT SIGINT
-              # Wait for both processes
+
+              trap 'kill $ZENOH_PID $PYTHON_PID $RUST_PID 2>/dev/null' EXIT INT TERM
+
               wait $PYTHON_PID $RUST_PID
             '';
           };
-
-
 
           default = self'.packages.demo;
 
@@ -86,11 +111,11 @@
             self'.packages.demo
             self'.packages.rust_demo
             self'.packages.python_demo
+            self'.packages.zenohd
 
 
             pkgs.just
             pkgs.uv
-            pkgs.flatbuffers
 
           ];
           env.ZENOH_CONFIG = sharedConfig;
