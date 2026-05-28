@@ -31,9 +31,10 @@
             pname = "go_demo";
             version = "0.1.0";
             src = ./.;
-            # vendorHash = null;
-            vendorHash = "sha256-3tALq0HG6R91HkDILQYTMrN/cQhUHIrSHD0Nd2mWWF8=";
+            vendorHash = null;
+            # vendorHash = "sha256-qaRFf+OrzBHZYBQT0u3RiTJ9XtS6/s9P0UGjhmnLIso=";
 
+            env.CGO_ENABLED = "1";
             proxyVendor = true;
 
             nativeBuildInputs = [ pkgs.pkg-config ];
