@@ -27,7 +27,7 @@
           ...
         }:
         let
-          zenoh-c = pkgs.callPackage ./zenoh-c.nix { };
+          zenoh-c = pkgs.callPackage ../.build_utils/zenoh-c.nix { };
         in
         {
           packages.default = pkgs.buildGoModule {

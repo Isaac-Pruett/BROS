@@ -2,3 +2,7 @@ github.com/BooleanCat/option v0.1.0 h1:wLwWbWnxUEAhpH+Gixy9OjFRnxmwm+nHcZQ8a2Joz
 github.com/BooleanCat/option v0.1.0/go.mod h1:vzGAJoquxEsprjj3qidyQTSQzqWDztoj9mO84BoY+YU=
 github.com/eclipse-zenoh/zenoh-go v1.9.0 h1:OKjUYd3foYsp7NY5B9aH+yFLUba9caUDmJSUOXqBLkI=
 github.com/eclipse-zenoh/zenoh-go v1.9.0/go.mod h1:PeY2+x6VPEFpl/FMLfOl+zwsLxbUjresV5AAT158l80=
+github.com/vmihailenco/msgpack/v5 v5.4.1 h1:cQriyiUvjTwOHg8QZaPihLWeRAAVoCpE00IUPn0Bjt8=
+github.com/vmihailenco/msgpack/v5 v5.4.1/go.mod h1:GaZTsDaehaPpQVyxrf5mtQlH+pc21PIudVV/E3rRQok=
+github.com/vmihailenco/tagparser/v2 v2.0.0 h1:y09buUbR+b5aycVFQs/g70pqKVZNBmxwAhO7/IwNM9g=
+github.com/vmihailenco/tagparser/v2 v2.0.0/go.mod h1:Wri+At7QHww0WTrCBeu4J6bNtoV6mEfg5OIWRZA9qds=

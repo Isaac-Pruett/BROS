@@ -5,3 +5,7 @@ github.com/BooleanCat/option
 ## explicit; go 1.22
 github.com/eclipse-zenoh/zenoh-go/zenoh
 github.com/eclipse-zenoh/zenoh-go/zenoh/internal
+# github.com/vmihailenco/msgpack/v5 v5.4.1
+## explicit; go 1.19
+# github.com/vmihailenco/tagparser/v2 v2.0.0
+## explicit; go 1.15
