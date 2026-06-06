@@ -6,23 +6,38 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     rust-demo-sub.url = "./rust_demo";
     python-demo-sub.url = "./python_demo";
-
+    go-demo-sub.url = "./go_demo";
 
     zenohd.url = "./zenohd";
 
   };
 
-  outputs = inputs @ { flake-parts, ... }:
+  outputs =
+    inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [ "x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
 
       imports = [
         # ./module.nix
         # inputs.foo.flakeModule
       ];
 
-      perSystem = { config, self', inputs', pkgs, system, ... }: let
-        # Allows definition of system-specific attributes
+      perSystem =
+        {
+          config,
+          self',
+          inputs',
+          pkgs,
+          system,
+          ...
+        }:
+        let
+          # Allows definition of system-specific attributes
           # without needing to declare the system explicitly!
           #
           # Quick rundown of the provided arguments:
@@ -34,100 +49,101 @@
 
           # This is equivalent to packages.<system>.default
 
-        # Generate shared Zenoh config (customize as needed; could derive from template)
-        sharedConfig = pkgs.writeText "zenoh-config.json" ''
-          {
-            mode: "client",
-            connect: {
-              endpoints: ["tcp/127.0.0.1:7447"]
-            },
-            scouting: {
-              multicast: {
-                enabled: false
+          # Generate shared Zenoh config (customize as needed; could derive from template)
+          sharedConfig = pkgs.writeText "zenoh-config.json" ''
+            {
+              mode: "router",
+              connect: {
+                endpoints: ["tcp/127.0.0.1:7447"]
+              },
+              scouting: {
+                multicast: {
+                  enabled: true
+                }
               }
             }
-          }
-        '';
+          '';
 
-        routerCfg = pkgs.writeText "zenoh-router-cfg.json" ''
-          {
-            mode: "router",
-            listen: {
-              endpoints: ["tcp/127.0.0.1:7447"]
+          routerCfg = pkgs.writeText "zenoh-router-cfg.json" ''
+            {
+              mode: "router",
+              listen: {
+                endpoints: ["tcp/127.0.0.1:7447"]
+              }
             }
-          }
-        '';
+          '';
 
+        in
+        {
+          # Expose subproject packages for composition
+          packages = {
+            rust_demo = inputs.rust-demo-sub.packages.${system}.default;
+            python_demo = inputs.python-demo-sub.packages.${system}.default;
+            go_demo = inputs.go-demo-sub.packages.${system}.default;
 
+            zenohd = inputs.zenohd.packages.${system}.default;
 
-      in {
-        # Expose subproject packages for composition
-        packages = {
-          rust_demo = inputs.rust-demo-sub.packages.${system}.default;
-          python_demo = inputs.python-demo-sub.packages.${system}.default;
+            # Launcher: Spins up all with shared config
+            demo = pkgs.writeShellApplication {
+              name = "demo-ping-pong-zenoh";
+              runtimeInputs = [
+                self'.packages.rust_demo
+                self'.packages.python_demo
+                self'.packages.go_demo
 
-          zenohd = inputs.zenohd.packages.${system}.default;
+                self'.packages.zenohd
 
-          # Launcher: Spins up all with shared config
-          demo = pkgs.writeShellApplication {
-            name = "demo-ping-pong-zenoh";
-            runtimeInputs = [
-              self'.packages.rust_demo
-              self'.packages.python_demo
+              ];
+              text = ''
+                export ZENOH_CONFIG=${sharedConfig}
+                export ROUTER_CONFIG=${routerCfg}
+                echo "Launching with shared config: $ZENOH_CONFIG"
 
-              self'.packages.zenohd
+                zenohd -c "$ROUTER_CONFIG" 1>>/dev/null&
+                ZENOH_PID=$!
 
-            ];
-            text = ''
-              export ZENOH_CONFIG=${sharedConfig}
-              echo "Launching with shared config: $ZENOH_CONFIG"
+                sleep 0.5
 
-              zenohd -c ${routerCfg} 1>/dev/null &
-              ZENOH_PID=$!
+                python_demo &
+                PYTHON_PID=$!
 
-              sleep 0.5
+                rust_demo &
+                RUST_PID=$!
 
-              python_demo &
-              PYTHON_PID=$!
+                go_demo &
+                GO_PID=$!
 
-              rust_demo &
-              RUST_PID=$!
+                trap 'kill $ZENOH_PID $GO_PID $PYTHON_PID $RUST_PID 2>/dev/null' EXIT INT TERM
+                wait $PYTHON_PID $RUST_PID $GO_PID
+              '';
+            };
 
-              trap 'kill $ZENOH_PID $PYTHON_PID $RUST_PID 2>/dev/null' EXIT INT TERM
+            default = self'.packages.demo;
 
-              wait $PYTHON_PID $RUST_PID
-            '';
           };
 
-          default = self'.packages.demo;
+          devShells.default = pkgs.mkShell {
+            packages = [
+              self'.packages.demo
+              self'.packages.rust_demo
+              self'.packages.python_demo
+              self'.packages.go_demo
+              self'.packages.zenohd
 
+              pkgs.just
+              pkgs.uv
 
+            ];
+            env.ZENOH_CONFIG = sharedConfig;
 
-
+            shellHook = ''
+              export ZENOH_CONFIG=${sharedConfig}
+              alias j="just"
+              echo "Run 'demo-ping-pong-zenoh' to start demo."
+              echo "just is aliased to j"
+            '';
+          };
         };
-
-        devShells.default = pkgs.mkShell {
-          packages = [
-            self'.packages.demo
-            self'.packages.rust_demo
-            self'.packages.python_demo
-            self'.packages.zenohd
-
-
-            pkgs.just
-            pkgs.uv
-
-          ];
-          env.ZENOH_CONFIG = sharedConfig;
-
-          shellHook = ''
-            export ZENOH_CONFIG=${sharedConfig}
-            alias j="just"
-            echo "Run 'demo-ping-pong-zenoh' to start demo."
-            echo "just is aliased to j"
-          '';
-        };
-      };
       flake = {
         # The usual flake attributes can be defined here, including
         # system-agnostic and/or arbitrary outputs.
