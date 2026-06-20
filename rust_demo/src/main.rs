@@ -25,7 +25,7 @@ async fn main() -> zenoh::Result<()> {
         .serialize(&mut Serializer::new(&mut buf))
         .expect("Failed to serialize packet");
 
-    println!("Sent: {:?}", packet);
+    println!("Rust Sent: {:?}", packet);
     publisher.put(buf).await?;
 
     let deadline = Instant::now() + Duration::from_secs(6);
@@ -40,7 +40,7 @@ async fn main() -> zenoh::Result<()> {
 
                 match TaggedString::deserialize(&mut Deserializer::new(&*bytes)) {
                     Ok(msg) => {
-                        println!("Received: {:?}", msg);
+                        println!("Rust Received: {:?}", msg);
                         received_any = true;
                     }
                     Err(e) => eprintln!("Deserialize error: {e}"),

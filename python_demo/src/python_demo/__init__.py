@@ -14,7 +14,7 @@ def main():
 
         msg = TaggedString(id=67, s="hello from python!")
         publisher.put(msg.to_msgpack())
-        print(f"Sent: {msg}")
+        print(f"Python Sent: {msg}")
 
         deadline = time.time() + 6
         received_any = False
@@ -24,7 +24,7 @@ def main():
 
             if sample is not None:
                 received = TaggedString.from_msgpack(bytes(sample.payload))
-                print(f"Received: {received}")
+                print(f"Python Received: {received}")
                 received_any = True
                 continue
 

@@ -99,22 +99,19 @@
                 export ROUTER_CONFIG=${routerCfg}
                 echo "Launching with shared config: $ZENOH_CONFIG"
 
-                zenohd -c "$ROUTER_CONFIG" 1>>/dev/null&
-                ZENOH_PID=$!
+                PIDS=()
 
+                spawn() { "$@" & PIDS+=($!); }
+
+                spawn zenohd -c ${routerCfg} 1>/dev/null
                 sleep 0.5
+                spawn go_demo
+                spawn python_demo
+                spawn rust_demo
 
-                python_demo &
-                PYTHON_PID=$!
 
-                rust_demo &
-                RUST_PID=$!
-
-                go_demo &
-                GO_PID=$!
-
-                trap 'kill $ZENOH_PID $GO_PID $PYTHON_PID $RUST_PID 2>/dev/null' EXIT INT TERM
-                wait $PYTHON_PID $RUST_PID $GO_PID
+                trap 'kill "''${PIDS[@]}" 2>/dev/null' EXIT INT TERM
+                wait "''${PIDS[@]:1}"
               '';
             };
 

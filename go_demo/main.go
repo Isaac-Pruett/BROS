@@ -10,9 +10,9 @@ import (
 	msgpack "github.com/hashicorp/go-msgpack/codec"
 )
 
-type TaggedString = struct {
-	ID      int
-	Message string
+type TaggedString struct {
+	ID int    `codec:"id"`
+	S  string `codec:"s"`
 }
 
 func dataHandler(sample zenoh.Sample) {
@@ -21,17 +21,17 @@ func dataHandler(sample zenoh.Sample) {
 
 	decoded := TaggedString{}
 
-	err := msgpack.NewDecoder(bytes.NewReader(dec), nil).Decode(&decoded)
+	err := msgpack.NewDecoder(bytes.NewReader(dec), &msgpack.MsgpackHandle{}).Decode(&decoded)
 	if err != nil {
 		fmt.Printf("failed to decode payload: %v\n", err)
 		return
 	}
 
-	fmt.Printf(">> [Subscriber] Received ('%s': ID: '%s', Message: '%s')",
+	fmt.Printf("Go Received: ('%s': ID: '%s', Message: '%s')",
 
 		sample.KeyExpr().String(),
 		decoded.ID,
-		decoded.Message,
+		decoded.S,
 	)
 
 	// check if attachment exists
@@ -71,17 +71,7 @@ func main() {
 
 	defer session.Drop()
 
-	keyexpr, err := zenoh.NewKeyExpr("demo/out/*")
-	sub, err := session.DeclareSubscriber(keyexpr, zenoh.Closure[zenoh.Sample]{Call: dataHandler}, nil)
-
-	if err != nil {
-		fmt.Printf("Unable to declare subscriber for key expression '%s': %v\n", keyexpr, err)
-		os.Exit(-1)
-	}
-
-	defer sub.Drop()
-
-	keyexpr, err = zenoh.NewKeyExpr("demo/out/go")
+	keyexpr, err := zenoh.NewKeyExpr("demo/out/go")
 	pub, err := session.DeclarePublisher(keyexpr, nil)
 	if err != nil {
 		fmt.Printf("Unable to declare publisher for key expression '%s': %v\n", keyexpr, err)
@@ -98,11 +88,21 @@ func main() {
 	}
 
 	pub.Put(zenoh.NewZBytes(buf.Bytes()), nil)
-	fmt.Printf("Sent: TaggedString{id: %d, s: %q}\n", payload[0], payload[1])
+	fmt.Printf("Go Sent: TaggedString{id: %d, s: %q}\n", payload[0], payload[1])
+
+	keyexpr, err = zenoh.NewKeyExpr("demo/out/*")
+	sub, err := session.DeclareSubscriber(keyexpr, zenoh.Closure[zenoh.Sample]{Call: dataHandler}, nil)
+
+	if err != nil {
+		fmt.Printf("Unable to declare subscriber for key expression '%s': %v\n", keyexpr, err)
+		os.Exit(-1)
+	}
+
+	defer sub.Drop()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
-	fmt.Println("Press CTRL-C to quit...")
+	// fmt.Println("Press CTRL-C to quit...")
 	<-stop
 
 }
