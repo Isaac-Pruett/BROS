@@ -52,14 +52,9 @@
           # Generate shared Zenoh config (customize as needed; could derive from template)
           sharedConfig = pkgs.writeText "zenoh-config.json" ''
             {
-              mode: "router",
+              mode: "client",
               connect: {
                 endpoints: ["tcp/127.0.0.1:7447"]
-              },
-              scouting: {
-                multicast: {
-                  enabled: true
-                }
               }
             }
           '';
