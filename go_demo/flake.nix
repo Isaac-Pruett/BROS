@@ -34,19 +34,15 @@
             pname = "go_demo";
             version = "0.1.0";
             src = ./.;
+
             vendorHash = "sha256-Z2kguOCLppJNOownC6+ojtkcHpdwptHM5sUAo310els=";
+            proxyVendor = true;
 
             env.CGO_ENABLED = "1";
             env.PKG_CONFIG_ALL_STATIC = "1";
-            proxyVendor = true;
 
-            nativeBuildInputs = [
-              pkgs.pkg-config
-            ];
-
-            buildInputs = [
-              zenoh-c
-            ];
+            nativeBuildInputs = [ pkgs.pkg-config ];
+            buildInputs = [ zenoh-c ];
           };
         };
     };
