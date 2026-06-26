@@ -4,7 +4,10 @@ In Development.
 
 BROS is a framework for developing programs and processes that talk to each other using [Zenoh](https://zenoh.io), and have an automated build/launch process by using [Nix](https://nixos.org) flakes. It enables the user to use modern package managers ([cargo](https://doc.rust-lang.org/cargo/), [uv](https://docs.astral.sh/uv/)) with Zenoh's extremely fast Inter-Process-Communication. Developed initialally as a personal project with intent to use on robots and [PolyUAS](https://polyuas.org) autonomous drones.
 
-
+Cross-language communication demonstrated between:
+✓ Rust
+✓ Python
+✓ Go
 
 ## To use: 
 
@@ -42,4 +45,4 @@ just new <node name> <template_name (in .build_utils/templates): python_zenoh_te
 > **_NOTE:_**  In this project, by running "just" or "just --list" the justfile will display helpful info about the recipes available. Just is also aliased to "j" in the Nix shell
 
 
-The python script in .build_utils will run, creating a new node and running a script relevant to that node's setup.
+The script in .build_utils will run, creating a new node and running a script relevant to that node's setup.
